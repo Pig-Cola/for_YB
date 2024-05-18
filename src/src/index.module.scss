@@ -1,0 +1,41 @@
+.drag-box {
+  height: calc(100vh - 10px);
+
+  display: flex;
+  flex-flow: column;
+
+  margin: 5px;
+  padding: 10px;
+
+  border: 2px dashed;
+  border-color: auto;
+  border-radius: 5px;
+
+  transition: border-color 300ms linear;
+
+  &.drag-over {
+    border-color: lightgreen;
+  }
+
+  &.err {
+    border-color: red;
+  }
+
+  .info {
+    color: gray;
+  }
+
+  .text-box {
+    flex: 0 1 auto;
+
+    display: flex;
+    flex-flow: column;
+    // align-items: center;
+    justify-content: center;
+  }
+
+  .clickable {
+    text-decoration: underline;
+    color: adjust-color($color: skyblue, $lightness: -15%);
+  }
+}

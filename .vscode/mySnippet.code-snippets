@@ -1,0 +1,24 @@
+{
+  "Styled Class Name": {
+    "description": "JSX.Element Styled Class Name",
+    "body": "className={classname( [$1] )}",
+    "prefix": "csn",
+    "scope": "typescript, typescriptreact, javascript, javascriptreact"
+  },
+  "Import Styled Class Option": {
+    "description": "import Style and Class Option",
+    "body": [
+      "import { classOption } from '@/utill/class-helper'",
+      "import styles from '${1:./index}.module.${2:css}'",
+      "",
+      "const { classname } = classOption( styles )"
+    ],
+    "prefix": "cso",
+    "scope": "typescript, typescriptreact, javascript, javascriptreact"
+  },
+  "export default": {
+    "body": "export default $1",
+    "prefix": "edf",
+    "scope": "typescript, typescriptreact, javascript, javascriptreact"
+  }
+}
