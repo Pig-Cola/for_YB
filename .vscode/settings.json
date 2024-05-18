@@ -1,0 +1,14 @@
+{
+  "editor.formatOnSave": false,
+  "editor.formatOnSaveMode": "file",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": ["source.formatDocument", "source.fixAll.eslint"],
+  "eslint.codeActionsOnSave.mode": "problems",
+  "files.associations": {
+    "*.env": "properties",
+    "*.prisma": "prisma"
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
+}
