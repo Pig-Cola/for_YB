@@ -6,6 +6,7 @@ import { Reorder, useDragControls, m } from 'framer-motion'
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react'
 import type { jsonFileType } from '@/types'
 import { useNavigate } from 'react-router-dom'
+import enc, { type Encoding } from 'encoding-japanese'
 
 const { ipcRenderer } = window.require( 'electron' )
 
@@ -18,20 +19,19 @@ export default function Replace() {
 
   const { file, setFile } = useFileStore( ( s ) => s )
 
-  const reader = useRef<FileReader | null>( null )
-
-  useEffect( () => {
-    reader.current = new FileReader()
-  }, [] )
-
   const [text, setText] = useState( '' )
 
   useEffect( () => {
-    if ( file && reader.current ) {
-      reader.current.onload = ( e ) => {
-        setText( ( e.target?.result as string ) || '' )
-      }
-      reader.current.readAsText( file )
+    if ( file ) {
+      file.arrayBuffer().then( ( bff ) => {
+        const arrBff = new Uint8Array( bff )
+        const temp = enc.detect( arrBff, ['UTF32', 'UTF16LE', 'UTF16', 'UTF8'] ) as Encoding
+        // console.log( temp )
+        const conv = enc.convert( arrBff, { to: 'UNICODE', from: temp } )
+        const str = enc.codeToString( conv )
+        // console.log( str )
+        setText( str )
+      } )
     }
   }, [file] )
 
@@ -81,12 +81,9 @@ export default function Replace() {
               try {
                 return newS
               } finally {
-                linkRef.current.href =
-                  /* `\
-data:application/json;charset=utf-8,\
-${JSON.stringify( newS, undefined, 2 )}\
-` */
-                  URL.createObjectURL( new Blob( [JSON.stringify( newS, undefined, 2 )], { type: 'application/json' } ) )
+                linkRef.current.href = URL.createObjectURL(
+                  new Blob( [JSON.stringify( newS, undefined, 2 )], { type: 'application/json' } ),
+                )
                 linkRef.current.download = 'file'
                 linkRef.current.click()
                 console.log( linkRef.current.href )
