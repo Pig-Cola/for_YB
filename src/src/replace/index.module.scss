@@ -61,10 +61,14 @@
           font-size: 22px;
         }
 
-        // .index {
-        // }
+        .index {
+          color: yellow;
+        }
         // .name {
         // }
+        .total-time {
+          color: aqua;
+        }
         .player-id {
           color: gray;
         }
@@ -102,8 +106,36 @@
     word-wrap: break-word;
     text-overflow: clip;
 
-    .filename {
-      margin-top: 20px;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+
+    .title {
+      color: darkgray;
+    }
+
+    & :last-child {
+      .example {
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        justify-content: flex-start;
+
+        column-gap: 20px;
+        row-gap: 10px;
+
+        .index {
+          color: yellow;
+        }
+        // .name {
+        // }
+        .total-time {
+          color: aqua;
+        }
+        .player-id {
+          color: gray;
+        }
+      }
     }
   }
 
