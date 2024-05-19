@@ -81,7 +81,16 @@ export default function Replace() {
                 return newS
               } finally {
                 linkRef.current.href = URL.createObjectURL(
-                  new Blob( [JSON.stringify( newS, undefined, 4 )], { type: 'application/json' } ),
+                  new Blob(
+                    [
+                      enc.codeToString(
+                        enc.convert( new Uint8Array( enc.stringToCode( JSON.stringify( newS, undefined, 4 ) ) ), 'UTF16LE' ),
+                      ),
+                    ],
+                    {
+                      type: 'application/json',
+                    },
+                  ),
                 )
                 linkRef.current.download = 'file'
                 linkRef.current.click()
