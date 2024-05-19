@@ -56,9 +56,7 @@ export default function Replace() {
       <div className={classname( ['menu'] )}>
         <button
           onClick={async () => {
-            if ( !confirm( '저장 후에는 초기화가 불가능 합니다\n다른이름으로 저장했을 때에는 초기화 가능' ) ) {
-              return
-            }
+            if ( !confirm( '저장 후에는 초기화가 불가능 합니다.\n다른이름으로 저장했을 때에는 초기화 가능.' ) ) return
 
             setObj( ( s ) => {
               const newS = { ...s, sessionResult: { ...s.sessionResult, leaderBoardLines: readerBoard } }
@@ -66,7 +64,7 @@ export default function Replace() {
                 return newS
               } finally {
                 ipcRenderer.invoke( 'saveJson', newS, file.path ).then( () => {
-                  alert( '저장되었습니다' )
+                  alert( '저장되었습니다.' )
                 } )
               }
             } )
@@ -76,6 +74,7 @@ export default function Replace() {
         </button>
         <button
           onClick={() => {
+            alert( '해당 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
             setObj( ( s ) => {
               const newS = { ...s, sessionResult: { ...s.sessionResult, leaderBoardLines: readerBoard } }
               try {
@@ -120,18 +119,43 @@ export default function Replace() {
         style={{ overflowY: 'auto' }}
       >
         {readerBoard?.map( ( v, i ) => (
-          <ItemSlot value={v} index={i} key={v.car.carId} reorder={setReaderBoard} />
+          <ItemSlot value={v} index={i} key={v.car.carId} max={readerBoard.length} reorder={setReaderBoard} />
         ) )}
       </Reorder.Group>
       <div className={classname( ['info'] )}>
-        <p>서버 이름 : {obj?.serverName}</p>
-        <br />
-        <p>트랙 : {obj?.trackName}</p>
-        <br />
-        <p className={classname( ['filename'] )}>파일 이름 : {file?.name || 'file name'}</p>
-        <br />
-        <p>파일 위치 : {file?.path || 'file name'}</p>
-        {link}
+        <div>
+          <p>
+            <span className={classname( ['title'] )}>파일 이름 : </span>
+            {file?.name || 'file name'}
+          </p>
+          <p>
+            <span className={classname( ['title'] )}>파일 위치 : </span>
+            {file?.path || 'file name'}
+          </p>
+          <br />
+          <br />
+
+          <p>
+            <span className={classname( ['title'] )}>서버 이름 : </span>
+            {obj?.serverName}
+          </p>
+          <br />
+          <p>
+            <span className={classname( ['title'] )}>트랙 : </span>
+            {obj?.trackName}
+          </p>
+          {link}
+        </div>
+        <div>
+          <p className={classname( ['title'] )}>대시보드 설명</p>
+          <br />
+          <div className={classname( ['example'] )}>
+            <p className={classname( ['index'] )}>등수</p>
+            <p className={classname( ['name'] )}>이름</p>
+            <p className={classname( ['total-time'] )}>total time</p>
+            <p className={classname( ['player-id'] )}>playerId</p>
+          </div>
+        </div>
       </div>
     </main>
   )
@@ -142,10 +166,12 @@ function ItemSlot( {
   value: v,
   index: i,
   reorder,
+  max,
 }: {
   value: itemValue
   index: number
   reorder: Dispatch<SetStateAction<itemValue[]>>
+  max: number
 } ) {
   const controls = useDragControls()
   const input = useRef<HTMLInputElement>( null )
@@ -163,12 +189,38 @@ function ItemSlot( {
       <div className={classname( ['user-info'] )}>
         <div className={classname( ['index'] )}># {i + 1}</div>
         <div className={classname( ['name'] )}>{`${v.currentDriver.firstName} ${v.currentDriver.lastName}`}</div>
+        <div className={classname( ['total-time'] )}>{`${v.timing.totalTime}`}</div>
         <div className={classname( ['player-id'] )}>{v.currentDriver.playerId}</div>
       </div>
 
       <div className={classname( ['control'] )}>
         <div className={classname( ['input'] )}>
-          <input ref={input} key={i} type="number" defaultValue={i + 1} />
+          <input
+            ref={input}
+            key={i}
+            type="number"
+            min={1}
+            max={max}
+            defaultValue={i + 1}
+            onChange={( e ) => {
+              const first = e.target.value[0]
+              if ( first === '-' || first === '0' ) {
+                e.target.value = `${i + 1}`
+                return
+              }
+
+              if ( +e.target.value > max ) {
+                e.target.value = `${max}`
+                return
+              }
+            }}
+            onBlur={( e ) => {
+              if ( !e.target.value ) {
+                e.target.value = `${i + 1}`
+                return
+              }
+            }}
+          />
           <button
             onClick={() => {
               reorder( ( s ) => {
