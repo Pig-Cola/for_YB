@@ -1,7 +1,7 @@
 {
   "name": "for_yb",
   "productName": "for_YB",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {
