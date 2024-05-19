@@ -84,7 +84,7 @@ export default function Replace() {
                   new Blob(
                     [
                       enc.codeToString(
-                        enc.convert( new Uint8Array( enc.stringToCode( JSON.stringify( newS, undefined, 4 ) ) ), 'UTF16LE' ),
+                        enc.convert( new Uint16Array( enc.stringToCode( JSON.stringify( newS, undefined, 2 ) ) ), 'UTF16LE' ),
                       ),
                     ],
                     {
