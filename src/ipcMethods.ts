@@ -3,7 +3,7 @@ import { ipcMain } from 'electron'
 import * as fs from 'fs'
 
 ipcMain.handle( 'saveJson', ( e, obj: jsonFileType, filePath: File['path'] ) => {
-  const json = JSON.stringify( obj, undefined, 2 )
+  const json = JSON.stringify( obj, undefined, 4 )
   fs.writeFileSync( filePath, json, { flush: true } )
   return json
 } )
