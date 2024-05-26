@@ -1,4 +1,9 @@
-export type jsonFileType = {
+declare module '*.scss' {
+  const content: { [className: string]: string }
+  export = content
+}
+
+declare type jsonFileType = {
   sessionType: string
   trackName: string
   sessionIndex: number
