@@ -4,7 +4,7 @@ import styles from './index.module.scss'
 import { useFileStore } from '@/zustand'
 import { Reorder, useDragControls, m } from 'framer-motion'
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react'
-import type { jsonFileType } from '@/types'
+
 import { useNavigate } from 'react-router-dom'
 import enc, { type Encoding } from 'encoding-japanese'
 
