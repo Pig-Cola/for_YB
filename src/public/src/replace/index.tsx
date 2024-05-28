@@ -6,7 +6,7 @@ import { Reorder, useDragControls, m } from 'framer-motion'
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react'
 
 import { useNavigate } from 'react-router-dom'
-import enc, { type Encoding } from 'encoding-japanese'
+import enc from 'encoding-japanese'
 
 const { ipcRenderer } = window.require( 'electron' )
 
@@ -17,27 +17,25 @@ export default function Replace() {
   const linkRef = useRef<HTMLAnchorElement>( null )
   const [link] = useState( <a ref={linkRef} hidden href={''} download={''}></a> )
 
-  const { file, setFile } = useFileStore( ( s ) => s )
+  const [fileReload, doFileReload] = useState( false )
+  const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
 
+// 파일 raw text
   const [text, setText] = useState( '' )
-
   useEffect( () => {
-    if ( file ) {
-      file.arrayBuffer().then( ( bff ) => {
-        const arrBff = new Uint8Array( bff )
-        const temp = enc.detect( arrBff, ['UTF32', 'UTF16LE', 'UTF16', 'UTF8'] ) as Encoding
-        // console.log( temp )
-        const conv = enc.convert( arrBff, { to: 'UNICODE', from: temp } )
-        const str = enc.codeToString( conv )
-        // console.log( str )
-        setText( str )
-      } )
-    }
-  }, [file] )
+    void fileReload
 
+    if ( !file ) return
+
+    ipcRenderer.invoke( 'readFile', file.path ).then( ( str ) => setText( str ) )
+  }, [file, fileReload] )
+
+  // json 객체
   const [obj, setObj] = useState<jsonFileType>()
 
   useEffect( () => {
+void fileReload
+
     if ( !text ) return
 
     setObj( JSON.parse( text ) )
@@ -103,7 +101,7 @@ export default function Replace() {
         </button>
         <button
           onClick={() => {
-            setObj( JSON.parse( text ) )
+            doFileReload( ( s ) => !s )
           }}
         >
           초기화
