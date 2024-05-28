@@ -9,13 +9,13 @@ import { useNavigate } from 'react-router-dom'
 import enc from 'encoding-japanese'
 import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
-
-const { ipcRenderer } = window.require( 'electron' )
+import { useIpcRenderer } from '@/hooks/useIpcRenderer'
 
 const { classname } = classOption( styles )
 
 export default function Replace() {
   const navi = useNavigate()
+  const { ipcRenderer } = useIpcRenderer()
 
   const [fileReload, doFileReload] = useState( false )
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
@@ -28,7 +28,7 @@ export default function Replace() {
     if ( !file ) return
 
     ipcRenderer.invoke( 'readFile', file.path ).then( ( str ) => setText( str ) )
-  }, [file, fileReload] )
+  }, [file, fileReload, ipcRenderer] )
 
   // json 객체
   const [obj, setObj] = useState<jsonFileType>()

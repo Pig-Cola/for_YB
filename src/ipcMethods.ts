@@ -1,12 +1,31 @@
-import { ipcMain } from 'electron'
+import { ipcMain as _ipcMain } from 'electron/main'
 import * as fsP from 'fs/promises'
 import enc, { type Encoding } from 'encoding-japanese'
+
+export type IpcHandler = {
+  saveJson: ( obj: jsonFileType, filePath: File['path'] ) => Promise<void>
+  readFile: ( filePath: File['path'] ) => Promise<string>
+}
+
+interface customIpcMain<
+  T extends Record<string, ( ...args: unknown[] ) => unknown>,
+  K extends Exclude<keyof T, number | symbol> = Exclude<keyof T, number | symbol>,
+> extends Electron.IpcMain {
+  handle: {
+    <J extends K>(
+      channel: J,
+      fn: ( ...args: [Electron.IpcMainInvokeEvent, ...Parameters<T[J]>] ) => ReturnType<T[J]>,
+    ): void
+  }
+}
+
+const ipcMain = _ipcMain as customIpcMain<IpcHandler>
 
 ipcMain.handle( 'saveJson', async ( e, obj: jsonFileType, filePath: File['path'] ) => {
   const json = JSON.stringify( obj, undefined, 2 )
   await fsP.writeFile( filePath, json, { flush: true, encoding: 'utf-16le' } )
 
-  return json
+  // return json
 } )
 
 ipcMain.handle( 'readFile', async ( e, filePath: File['path'] ) => {
