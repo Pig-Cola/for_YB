@@ -16,13 +16,11 @@ const { classname } = classOption( styles )
 
 export default function Replace() {
   const navi = useNavigate()
-  const linkRef = useRef<HTMLAnchorElement>( null )
-  const [link] = useState( <a ref={linkRef} hidden href={''} download={''}></a> )
 
   const [fileReload, doFileReload] = useState( false )
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
 
-// 파일 raw text
+  // 파일 raw text
   const [text, setText] = useState( '' )
   useEffect( () => {
     void fileReload
@@ -34,9 +32,8 @@ export default function Replace() {
 
   // json 객체
   const [obj, setObj] = useState<jsonFileType>()
-
   useEffect( () => {
-void fileReload
+    void fileReload
 
     if ( !text ) return
 
@@ -55,9 +52,9 @@ void fileReload
     setObj( temp )
   }, [fileReload, text] )
 
-// 순위 결과 객체
+  // 순위 결과 객체
   const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
-const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
   useEffect( () => {
     if ( !obj ) return
 
@@ -83,6 +80,7 @@ const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessi
                 return newS
               } finally {
                 ipcRenderer.invoke( 'saveJson', newS, file.path ).then( () => {
+                  navi( '/' )
                   alert( '저장되었습니다.' )
                 } )
               }
@@ -93,7 +91,6 @@ const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessi
         </button>
         <button
           onClick={() => {
-            alert( '해당 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
             setObj( ( s ) => {
               const newS = {
                 ...s,
@@ -102,7 +99,8 @@ const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessi
               try {
                 return newS
               } finally {
-                linkRef.current.href = URL.createObjectURL(
+                const link = document.createElement( 'a' )
+                link.href = URL.createObjectURL(
                   new Blob(
                     [
                       enc.codeToString(
@@ -114,9 +112,9 @@ const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessi
                     },
                   ),
                 )
-                linkRef.current.download = 'file'
-                linkRef.current.click()
-                console.log( linkRef.current.href )
+                link.download = 'file'
+                alert( '해당 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
+                link.click()
               }
             } )
           }}
@@ -175,7 +173,6 @@ const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessi
             <span className={classname( ['title'] )}>트랙 : </span>
             {obj?.trackName}
           </p>
-          {link}
         </div>
         <div>
           <p className={classname( ['title'] )}>대시보드 설명</p>
