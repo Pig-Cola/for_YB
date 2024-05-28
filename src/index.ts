@@ -10,8 +10,6 @@ if ( require( 'electron-squirrel-startup' ) ) {
   app.quit()
 }
 
-const isDev = process.argv[2] === 'dev'
-
 app.commandLine.appendSwitch( '--no-sandbox' )
 
 const createWindow = (): void => {
@@ -34,27 +32,19 @@ const createWindow = (): void => {
 
   const menu = Menu.buildFromTemplate( [
     {
-      label: '설정',
-      accelerator: 'alt + f',
+      label: '설정  ',
       submenu: [
         { role: 'reload', label: '새로고추장무침' },
-        {
-          label: 'zoom',
-          submenu: [
-            { role: 'zoomIn', label: '너무 작아, 키워줘', accelerator: 'ctrl + =' },
-            { role: 'zoomOut', label: '너무 커, 줄여줘' },
-            { role: 'resetZoom', label: '줌 초기화' },
-          ],
-        },
+        { role: 'zoomIn', label: '너무 작아, 키워줘', accelerator: 'ctrl + =' },
+        { role: 'zoomOut', label: '너무 커, 줄여줘' },
+        { role: 'resetZoom', label: '줌 초기화' },
         { role: 'togglefullscreen', label: '전체화면' },
         { role: 'quit', label: 'ㅡㅏㅏㅏㅏㅏ (종료)', accelerator: 'ctrl + shift + w' },
-
-        ...( isDev ? [{ role: 'toggleDevTools' } as const] : [] ),
       ],
     },
   ] )
-  mainWindow.center()
   mainWindow.setMenu( menu )
+  mainWindow.center()
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
