@@ -10,8 +10,8 @@ function App() {
   return (
     <MemoryRouter>
       <Routes>
-        <Route index Component={Home} />
-        <Route path="replace" Component={Replace} />
+        <Route path="/" Component={Home} />
+        <Route path="/replace" Component={Replace} />
       </Routes>
     </MemoryRouter>
   )

@@ -6,7 +6,9 @@ import { Reorder, useDragControls, m } from 'framer-motion'
 import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react'
 
 import { useNavigate } from 'react-router-dom'
-import enc, { type Encoding } from 'encoding-japanese'
+import enc from 'encoding-japanese'
+import cloneDeep from 'lodash/cloneDeep'
+import partition from 'lodash/partition'
 
 const { ipcRenderer } = window.require( 'electron' )
 
@@ -14,41 +16,52 @@ const { classname } = classOption( styles )
 
 export default function Replace() {
   const navi = useNavigate()
-  const linkRef = useRef<HTMLAnchorElement>( null )
-  const [link] = useState( <a ref={linkRef} hidden href={''} download={''}></a> )
 
-  const { file, setFile } = useFileStore( ( s ) => s )
+  const [fileReload, doFileReload] = useState( false )
+  const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
 
+  // 파일 raw text
   const [text, setText] = useState( '' )
-
   useEffect( () => {
-    if ( file ) {
-      file.arrayBuffer().then( ( bff ) => {
-        const arrBff = new Uint8Array( bff )
-        const temp = enc.detect( arrBff, ['UTF32', 'UTF16LE', 'UTF16', 'UTF8'] ) as Encoding
-        // console.log( temp )
-        const conv = enc.convert( arrBff, { to: 'UNICODE', from: temp } )
-        const str = enc.codeToString( conv )
-        // console.log( str )
-        setText( str )
-      } )
-    }
-  }, [file] )
+    void fileReload
 
+    if ( !file ) return
+
+    ipcRenderer.invoke( 'readFile', file.path ).then( ( str ) => setText( str ) )
+  }, [file, fileReload] )
+
+  // json 객체
   const [obj, setObj] = useState<jsonFileType>()
-
   useEffect( () => {
+    void fileReload
+
     if ( !text ) return
 
-    setObj( JSON.parse( text ) )
-  }, [text] )
+    const temp = JSON.parse( text ) as jsonFileType
+    temp.sessionResult.leaderBoardLines = temp.sessionResult.leaderBoardLines.map( ( v ) => {
+      if ( v.timing.bestLap !== 2147483647 ) return v
+      if ( v.timing.lastLap === 2147483647 ) return v
 
-  const [readerBoard, setReaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+      const cloneValue = cloneDeep( v )
+      cloneValue.timing.bestLap = cloneValue.timing.lastLap
+      cloneValue.timing.bestSplits = cloneValue.timing.lastSplits
 
+      return cloneValue
+    } )
+
+    setObj( temp )
+  }, [fileReload, text] )
+
+  // 순위 결과 객체
+  const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
   useEffect( () => {
     if ( !obj ) return
 
-    setReaderBoard( [...obj.sessionResult.leaderBoardLines] )
+    const [invalid, valid] = partition( obj.sessionResult.leaderBoardLines, ( v ) => v.timing.lastLap === 2147483647 )
+
+    setLeaderBoard( valid )
+    setInvalidLeaderBoard( invalid )
   }, [obj] )
 
   return (
@@ -59,11 +72,15 @@ export default function Replace() {
             if ( !confirm( '저장 후에는 초기화가 불가능 합니다.\n다른이름으로 저장했을 때에는 초기화 가능.' ) ) return
 
             setObj( ( s ) => {
-              const newS = { ...s, sessionResult: { ...s.sessionResult, leaderBoardLines: readerBoard } }
+              const newS = {
+                ...s,
+                sessionResult: { ...s.sessionResult, leaderBoardLines: leaderBoard.concat( invalidLeaderBoard ) },
+              }
               try {
                 return newS
               } finally {
                 ipcRenderer.invoke( 'saveJson', newS, file.path ).then( () => {
+                  navi( '/' )
                   alert( '저장되었습니다.' )
                 } )
               }
@@ -74,13 +91,16 @@ export default function Replace() {
         </button>
         <button
           onClick={() => {
-            alert( '해당 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
             setObj( ( s ) => {
-              const newS = { ...s, sessionResult: { ...s.sessionResult, leaderBoardLines: readerBoard } }
+              const newS = {
+                ...s,
+                sessionResult: { ...s.sessionResult, leaderBoardLines: leaderBoard.concat( invalidLeaderBoard ) },
+              }
               try {
                 return newS
               } finally {
-                linkRef.current.href = URL.createObjectURL(
+                const link = document.createElement( 'a' )
+                link.href = URL.createObjectURL(
                   new Blob(
                     [
                       enc.codeToString(
@@ -92,9 +112,9 @@ export default function Replace() {
                     },
                   ),
                 )
-                linkRef.current.download = 'file'
-                linkRef.current.click()
-                console.log( linkRef.current.href )
+                link.download = 'file'
+                alert( '해당 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
+                link.click()
               }
             } )
           }}
@@ -103,7 +123,7 @@ export default function Replace() {
         </button>
         <button
           onClick={() => {
-            setObj( JSON.parse( text ) )
+            doFileReload( ( s ) => !s )
           }}
         >
           초기화
@@ -123,12 +143,12 @@ export default function Replace() {
         className={classname( ['leaderBoardLines'] )}
         axis="y"
         layoutScroll
-        values={readerBoard || []}
-        onReorder={setReaderBoard}
+        values={leaderBoard || []}
+        onReorder={setLeaderBoard}
         style={{ overflowY: 'auto' }}
       >
-        {readerBoard?.map( ( v, i ) => (
-          <ItemSlot value={v} index={i} key={v.car.carId} max={readerBoard.length} reorder={setReaderBoard} />
+        {leaderBoard?.map( ( v, i ) => (
+          <ItemSlot value={v} index={i} key={v.car.carId} max={leaderBoard.length} reorder={setLeaderBoard} />
         ) )}
       </Reorder.Group>
       <div className={classname( ['info'] )}>
@@ -153,7 +173,6 @@ export default function Replace() {
             <span className={classname( ['title'] )}>트랙 : </span>
             {obj?.trackName}
           </p>
-          {link}
         </div>
         <div>
           <p className={classname( ['title'] )}>대시보드 설명</p>
