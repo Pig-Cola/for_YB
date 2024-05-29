@@ -1,0 +1,65 @@
+.board {
+  min-width: 310px;
+  padding: 10px;
+
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 10px;
+
+  border: 1px solid #fff;
+  border-radius: 5px;
+  background-color: #000;
+
+  .user-info {
+    flex: 0 1 auto;
+
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px;
+
+    & :first-child {
+      font-size: 22px;
+    }
+
+    .index {
+      color: yellow;
+    }
+    // .name {
+    // }
+    .total-time {
+      color: aqua;
+    }
+    .player-id {
+      color: gray;
+    }
+  }
+
+  .control {
+    flex: 1 0 auto;
+
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: flex-end;
+    column-gap: 35px;
+
+    .input {
+      & > input {
+        width: 70px;
+
+        margin-right: 5px;
+
+        background-color: adjust-color($color: gray, $lightness: -30%);
+      }
+    }
+    .dragable {
+      padding: 7px;
+
+      cursor: grab;
+    }
+  }
+}

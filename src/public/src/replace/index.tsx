@@ -7,6 +7,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
 
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
+import { ItemSlot } from '@/components/ItemSlot'
 import { useFileStore } from '@/zustand'
 
 import styles from './index.module.scss'
@@ -20,21 +21,25 @@ export default function Replace() {
 
   const [fileReload, doFileReload] = useState( false )
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
+  const [text, setText] = useState( '' ) // 파일 raw text
+  const [obj, setObj] = useState<jsonFileType>() // json 객체
 
-  // 파일 raw text
-  const [text, setText] = useState( '' )
+  // 순위 결과 객체
+  const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+
+  // file read
   useEffect( () => {
-    void fileReload
+    void fileReload // reload
 
     if ( !file ) return
 
     ipcRenderer.invoke( 'readFile', file.path ).then( ( str ) => setText( str ) )
   }, [file, fileReload, ipcRenderer] )
 
-  // json 객체
-  const [obj, setObj] = useState<jsonFileType>()
+  // text parsing
   useEffect( () => {
-    void fileReload
+    void fileReload // reload
 
     if ( !text ) return
 
@@ -53,9 +58,7 @@ export default function Replace() {
     setObj( temp )
   }, [fileReload, text] )
 
-  // 순위 결과 객체
-  const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
-  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  // leaderBoard validation
   useEffect( () => {
     if ( !obj ) return
 
@@ -65,6 +68,7 @@ export default function Replace() {
     setInvalidLeaderBoard( invalid )
   }, [obj] )
 
+  // render
   return (
     <main className={classname( ['main'] )}>
       <div className={classname( ['menu'] )}>
@@ -187,92 +191,5 @@ export default function Replace() {
         </div>
       </div>
     </main>
-  )
-}
-
-type itemValue = jsonFileType['sessionResult']['leaderBoardLines'][number]
-function ItemSlot( {
-  value: v,
-  index: i,
-  reorder,
-  max,
-}: {
-  value: itemValue
-  index: number
-  reorder: Dispatch<SetStateAction<itemValue[]>>
-  max: number
-} ) {
-  const controls = useDragControls()
-  const input = useRef<HTMLInputElement>( null )
-
-  return (
-    <Reorder.Item
-      as="div"
-      dragListener={false}
-      drag={'y'}
-      value={v}
-      className={classname( ['board'] )}
-      dragControls={controls}
-      whileDrag={{ borderColor: 'lightgreen' }}
-    >
-      <div className={classname( ['user-info'] )}>
-        <div className={classname( ['index'] )}># {i + 1}</div>
-        <div className={classname( ['name'] )}>{`${v.currentDriver.firstName} ${v.currentDriver.lastName}`}</div>
-        <div className={classname( ['total-time'] )}>{`${v.timing.totalTime}`}</div>
-        <div className={classname( ['player-id'] )}>{v.currentDriver.playerId}</div>
-      </div>
-
-      <div className={classname( ['control'] )}>
-        <div className={classname( ['input'] )}>
-          <input
-            ref={input}
-            key={i}
-            type="number"
-            min={1}
-            max={max}
-            defaultValue={i + 1}
-            onChange={( e ) => {
-              const first = e.target.value[0]
-              if ( first === '-' || first === '0' ) {
-                e.target.value = `${i + 1}`
-                return
-              }
-
-              if ( +e.target.value > max ) {
-                e.target.value = `${max}`
-                return
-              }
-            }}
-            onBlur={( e ) => {
-              if ( !e.target.value ) {
-                e.target.value = `${i + 1}`
-                return
-              }
-            }}
-          />
-          <button
-            onClick={() => {
-              reorder( ( s ) => {
-                const newS = [...s.slice( 0, i ), ...s.slice( i + 1 )]
-                newS.splice( +input.current.value - 1, 0, s[i] )
-                return newS
-              } )
-            }}
-          >
-            이동
-          </button>
-        </div>
-
-        <m.button
-          onPointerDown={( e ) => {
-            controls.start( e )
-          }}
-          className={classname( ['dragable'] )}
-          style={{ touchAction: 'none' }}
-        >
-          ↕
-        </m.button>
-      </div>
-    </Reorder.Item>
   )
 }
