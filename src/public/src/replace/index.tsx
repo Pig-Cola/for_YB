@@ -1,15 +1,16 @@
-import { classOption } from '@/utill/class-helper'
-import styles from './index.module.scss'
-
-import { useFileStore } from '@/zustand'
-import { Reorder, useDragControls, m } from 'framer-motion'
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react'
-
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import enc from 'encoding-japanese'
+import { Reorder } from 'framer-motion'
 import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
+
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
+import { useFileStore } from '@/zustand'
+
+import styles from './index.module.scss'
+import { classOption } from '@/utill/class-helper'
 
 const { classname } = classOption( styles )
 

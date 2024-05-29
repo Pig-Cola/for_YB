@@ -1,5 +1,6 @@
 import { ipcMain as _ipcMain } from 'electron/main'
 import * as fsP from 'fs/promises'
+
 import enc, { type Encoding } from 'encoding-japanese'
 
 export type IpcHandler = {

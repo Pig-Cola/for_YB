@@ -1,8 +1,9 @@
-import type { Configuration } from 'webpack'
-
-import { rules } from './webpack.rules'
-import { plugins } from './webpack.plugins'
 import path from 'path'
+
+import { plugins } from './webpack.plugins'
+import { rules } from './webpack.rules'
+
+import type { Configuration } from 'webpack'
 
 export const mainConfig: Configuration = {
   /**
