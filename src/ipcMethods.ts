@@ -1,4 +1,4 @@
-import { ipcMain as _ipcMain } from 'electron/main'
+import { ipcMain as _ipcMain } from 'electron'
 import * as fsP from 'fs/promises'
 
 import enc, { type Encoding } from 'encoding-japanese'
