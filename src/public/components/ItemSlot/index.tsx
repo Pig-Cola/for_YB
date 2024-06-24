@@ -45,7 +45,12 @@ export function ReaderBoardItemSlot( {
           ?.filter( ( item ) => item.isVisible )
           .map( ( item ) => (
             <div key={item.name} style={{ color: item.color }}>
-              {item.name}: {_( v ).get( item.getter, '잘못된 접근자 입니다.' )}
+              {item.name}:{' '}
+              {( () => {
+                const temp = _( v ).get( item.getter, '잘못된 접근자 입니다.' )
+                if ( typeof temp === 'object' ) return '잘못된 접근자 입니다.'
+                return temp
+              } )()}
             </div>
           ) )}
       </div>
