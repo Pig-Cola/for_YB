@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useFileStore } from '@/zustand'
+import { useFileStore } from '@/zustand/fileStore'
 
 import styles from './index.module.scss'
 import { classOption } from '@/utill/class-helper'
