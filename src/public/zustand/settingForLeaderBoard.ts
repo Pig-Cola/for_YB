@@ -27,7 +27,7 @@ type LocalStore_Method = {
 const initUserProperties: LocalStore_State['userProperties'] = [
   { name: 'Total Time', getter: 'timing.totalTime', isImmutable: false, isVisible: true, color: '#00ffff' },
   { name: 'CarModel', getter: 'car.carModel', isImmutable: false, isVisible: true, color: '#ffc0cb' },
-  { name: 'player ID', getter: 'currentDriver.playerId', isImmutable: false, isVisible: true, color: '#808080' },
+  { name: 'player ID', getter: 'currentDriver.playerId', isImmutable: false, isVisible: false, color: '#808080' },
 ]
 
 export const useSettingForLeaderBoard = create<LocalStore_State & LocalStore_Method>()(

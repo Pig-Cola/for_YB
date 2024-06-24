@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@nextui-org/button'
+import { Tooltip } from '@nextui-org/tooltip'
 import { useDisclosure } from '@nextui-org/use-disclosure'
 import enc from 'encoding-japanese'
 import { Reorder } from 'framer-motion'
+import _ from 'lodash'
 import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
 
@@ -13,6 +15,7 @@ import { ReaderBoardItemSlot } from '@/components/ItemSlot'
 import { MyIcon } from '@/components/my-icon'
 import { ReaderBoardSetting } from '@/components/readerBoardSetting'
 import { useFileStore } from '@/zustand/fileStore'
+import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
 
 import styles from './index.module.scss'
 import { classOption } from '@/utill/class-helper'
@@ -28,6 +31,8 @@ export default function Replace() {
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
   const [text, setText] = useState( '' ) // 파일 raw text
   const [obj, setObj] = useState<jsonFileType>() // json 객체
+
+  const { userProperties } = useSettingForLeaderBoard()
 
   // 순위 결과 객체
   const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
@@ -77,11 +82,12 @@ export default function Replace() {
   return (
     <main className={classname( ['main'] )}>
       <div className={classname( ['menu'] )}>
-        <Button size="sm" color="primary" onPress={settingOptions.onOpen}>
-          <MyIcon>cog</MyIcon>
-        </Button>
+        <Tooltip content="설정">
+          <Button size="sm" onPress={settingOptions.onOpen}>
+            <MyIcon>cog</MyIcon>
+          </Button>
+        </Tooltip>
         <Button
-          // color="primary"
           size="sm"
           onPress={async () => {
             if ( !confirm( '저장 후에는 초기화가 불가능 합니다.\n다른이름으로 저장했을 때에는 초기화 가능.' ) ) return
@@ -138,17 +144,72 @@ export default function Replace() {
         >
           다른이름으로 저장
         </Button>
+        <Tooltip color="success" content="Excel을 위한 데이터 복사" placement="bottom">
+          <Button
+            color="success"
+            size="sm"
+            onPress={() => {
+              const visible = userProperties.filter( ( v ) => v.isVisible )
+              const table = document.createElement( 'table' )
+              const thead = document.createElement( 'thead' )
+              const tr = document.createElement( 'tr' )
+
+              tr.appendChild(
+                ( () => {
+                  const temp = document.createElement( 'th' )
+                  temp.innerText = 'name'
+                  return temp
+                } )(),
+              )
+              visible.forEach( ( { name: v } ) => {
+                const temp = document.createElement( 'th' )
+                temp.innerText = v
+                tr.appendChild( temp )
+              } )
+              thead.appendChild( tr )
+
+              const tbody = document.createElement( 'tbody' )
+              leaderBoard?.forEach( ( item ) => {
+                const tr = document.createElement( 'tr' )
+                tr.appendChild(
+                  ( () => {
+                    const temp = document.createElement( 'td' )
+                    temp.innerText = `${item.currentDriver.firstName} ${item.currentDriver.lastName}`
+                    return temp
+                  } )(),
+                )
+                visible.forEach( ( { getter } ) => {
+                  const td = document.createElement( 'td' )
+                  td.innerText = _( item ).get( getter, '잘못된 접근자 입니다' )
+                  tr.appendChild( td )
+                } )
+                tbody.appendChild( tr )
+              } )
+              table.appendChild( thead )
+              table.appendChild( tbody )
+
+              const { clipboard } = window.require( 'electron' )
+              clipboard.write( { text: table.textContent, html: table.outerHTML }, 'clipboard' )
+
+              alert( '복사 완료!' )
+            }}
+          >
+            표기 정보 복사
+          </Button>
+        </Tooltip>
+        <Tooltip content="순서 초기화" color="danger" placement="bottom">
+          <Button
+            color="danger"
+            size="sm"
+            onPress={() => {
+              doFileReload( ( s ) => !s )
+            }}
+          >
+            초기화
+          </Button>
+        </Tooltip>
         <Button
-          color="danger"
-          size="sm"
-          onPress={() => {
-            doFileReload( ( s ) => !s )
-          }}
-        >
-          초기화
-        </Button>
-        <Button
-          color="success"
+          color="secondary"
           size="sm"
           onPress={() => {
             setFile( null )

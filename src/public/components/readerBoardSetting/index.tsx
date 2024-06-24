@@ -5,6 +5,7 @@ import { Code } from '@nextui-org/code'
 import { Input } from '@nextui-org/input'
 import { Modal, ModalHeader, ModalBody, ModalContent } from '@nextui-org/modal'
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@nextui-org/table'
+import { Tooltip } from '@nextui-org/tooltip'
 
 import { LeaderBoardItem, useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
 
@@ -64,8 +65,8 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
       size="2xl"
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      isDismissable={false}
-      isKeyboardDismissDisabled={true}
+      // isDismissable={false}
+      // isKeyboardDismissDisabled
       scrollBehavior="inside"
     >
       <ModalContent>
@@ -94,6 +95,7 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
               <Button
                 color="danger"
                 onPress={() => {
+                  if ( !confirm( '설정한 접근자가 초기화 됩니다.\n정말 실행 하시겠습니까?' ) ) return
                   reset()
                 }}
               >
@@ -173,14 +175,16 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
                       <div className={classname( ['custom-cell'] )}>
                         <Code className={classname( ['code', { isVisible }] )}>{item.getter}</Code>
                         <div className={classname( ['btns'] )}>
-                          <Button
-                            size="sm"
-                            onPress={() => {
-                              editUserProperties( { ...item, isVisible: !item.isVisible } )
-                            }}
-                          >
-                            <MyIcon>{`eye${item.isVisible ? '' : '-blocked'}`}</MyIcon>
-                          </Button>
+                          <Tooltip content={isVisible ? '정보 표기하지 않기' : '정보 표기하기'} placement="left">
+                            <Button
+                              size="sm"
+                              onPress={() => {
+                                editUserProperties( { ...item, isVisible: !item.isVisible } )
+                              }}
+                            >
+                              <MyIcon>{`eye${item.isVisible ? '' : '-blocked'}`}</MyIcon>
+                            </Button>
+                          </Tooltip>
                           <Button
                             size="sm"
                             onPress={() => {
@@ -202,6 +206,7 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
                             size="sm"
                             onPress={() => {
                               removeUserProperties( item )
+                              setSelectedName( ( s ) => ( item.name !== s ? s : '' ) )
                             }}
                           >
                             <MyIcon>bin</MyIcon>
@@ -273,7 +278,7 @@ const EditModal = ( { isOpen, onOpenChange, allData, item, onChange }: EditModal
   }, [inputAccessor] )
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false} isKeyboardDismissDisabled={true}>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false} isKeyboardDismissDisabled>
       <ModalContent>
         <ModalHeader>edit</ModalHeader>
         <ModalBody>

@@ -1,5 +1,7 @@
-import { type Dispatch, type SetStateAction, useRef } from 'react'
+import { type Dispatch, type SetStateAction, useState } from 'react'
 
+import { Button } from '@nextui-org/button'
+import { Input } from '@nextui-org/react'
 import { Reorder, m, useDragControls } from 'framer-motion'
 import _ from 'lodash'
 
@@ -23,8 +25,8 @@ export function ReaderBoardItemSlot( {
   max: number
 } ) {
   const controls = useDragControls()
-  const input = useRef<HTMLInputElement>( null )
   const { userProperties } = useSettingForLeaderBoard()
+  const [inputValue, setInputValue] = useState( `${i + 1}` )
 
   return (
     <Reorder.Item
@@ -50,43 +52,34 @@ export function ReaderBoardItemSlot( {
 
       <div className={classname( ['control'] )}>
         <div className={classname( ['input'] )}>
-          <input
-            ref={input}
+          <Input
             key={i}
             type="number"
             min={1}
             max={max}
-            defaultValue={i + 1}
-            onChange={( e ) => {
-              const first = e.target.value[0]
-              if ( first === '-' || first === '0' ) {
-                e.target.value = `${i + 1}`
-                return
-              }
-
-              if ( +e.target.value > max ) {
-                e.target.value = `${max}`
-                return
-              }
+            value={inputValue}
+            onValueChange={( value ) => {
+              const first = value[0]
+              if ( first === '-' || first === '0' ) return setInputValue( `${i + 1}` )
+              if ( +value > max ) return setInputValue( `${max}` )
+              return setInputValue( value )
             }}
-            onBlur={( e ) => {
-              if ( !e.target.value ) {
-                e.target.value = `${i + 1}`
-                return
-              }
+            onBlur={() => {
+              setInputValue( ( s ) => s || `${i + 1}` )
             }}
-          />
-          <button
-            onClick={() => {
+          ></Input>
+          <Button
+            size="sm"
+            onPress={() => {
               reorder( ( s ) => {
                 const newS = [...s.slice( 0, i ), ...s.slice( i + 1 )]
-                newS.splice( +input.current.value - 1, 0, s[i] )
+                newS.splice( +inputValue - 1, 0, s[i] )
                 return newS
               } )
             }}
           >
             이동
-          </button>
+          </Button>
         </div>
 
         <m.button
