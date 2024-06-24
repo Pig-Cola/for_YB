@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 
-type state = {
+type FileStore_State = {
   file: File | null
 }
-type method = {
+type FileStore_Method = {
   setFile: ( file: File ) => void
 }
-export const useFileStore = create<state & method>( ( set ) => ( {
+export const useFileStore = create<FileStore_State & FileStore_Method>( ( set ) => ( {
   file: null,
   setFile: ( file ) => set( { file } ),
 } ) )

@@ -27,6 +27,8 @@ const createWindow = (): void => {
     minWidth: 500,
     minHeight: 500,
     icon: './src/icon.ico',
+
+    ...( isDev ? { width: 1080 } : {} ),
   } )
 
   // and load the index.html of the app.

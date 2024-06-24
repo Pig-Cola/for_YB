@@ -1,39 +1,50 @@
-import { classOption } from '@/utill/class-helper'
-import styles from './index.module.scss'
-
-import { useFileStore } from '@/zustand'
-import { Reorder, useDragControls, m } from 'framer-motion'
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react'
-
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { Button } from '@nextui-org/button'
+import { useDisclosure } from '@nextui-org/use-disclosure'
 import enc from 'encoding-japanese'
+import { Reorder } from 'framer-motion'
 import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
 
-const { ipcRenderer } = window.require( 'electron' )
+import { useIpcRenderer } from '@/hooks/useIpcRenderer'
+import { ReaderBoardItemSlot } from '@/components/ItemSlot'
+import { MyIcon } from '@/components/my-icon'
+import { ReaderBoardSetting } from '@/components/readerBoardSetting'
+import { useFileStore } from '@/zustand/fileStore'
+
+import styles from './index.module.scss'
+import { classOption } from '@/utill/class-helper'
 
 const { classname } = classOption( styles )
 
 export default function Replace() {
   const navi = useNavigate()
+  const { ipcRenderer } = useIpcRenderer()
+  const settingOptions = useDisclosure()
 
   const [fileReload, doFileReload] = useState( false )
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
+  const [text, setText] = useState( '' ) // 파일 raw text
+  const [obj, setObj] = useState<jsonFileType>() // json 객체
 
-  // 파일 raw text
-  const [text, setText] = useState( '' )
+  // 순위 결과 객체
+  const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+
+  // file read
   useEffect( () => {
-    void fileReload
+    void fileReload // reload
 
     if ( !file ) return
 
     ipcRenderer.invoke( 'readFile', file.path ).then( ( str ) => setText( str ) )
-  }, [file, fileReload] )
+  }, [file, fileReload, ipcRenderer] )
 
-  // json 객체
-  const [obj, setObj] = useState<jsonFileType>()
+  // text parsing
   useEffect( () => {
-    void fileReload
+    void fileReload // reload
 
     if ( !text ) return
 
@@ -52,9 +63,7 @@ export default function Replace() {
     setObj( temp )
   }, [fileReload, text] )
 
-  // 순위 결과 객체
-  const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
-  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  // leaderBoard validation
   useEffect( () => {
     if ( !obj ) return
 
@@ -64,11 +73,17 @@ export default function Replace() {
     setInvalidLeaderBoard( invalid )
   }, [obj] )
 
+  // render
   return (
     <main className={classname( ['main'] )}>
       <div className={classname( ['menu'] )}>
-        <button
-          onClick={async () => {
+        <Button size="sm" color="primary" onPress={settingOptions.onOpen}>
+          <MyIcon>cog</MyIcon>
+        </Button>
+        <Button
+          // color="primary"
+          size="sm"
+          onPress={async () => {
             if ( !confirm( '저장 후에는 초기화가 불가능 합니다.\n다른이름으로 저장했을 때에는 초기화 가능.' ) ) return
 
             setObj( ( s ) => {
@@ -88,9 +103,11 @@ export default function Replace() {
           }}
         >
           저장
-        </button>
-        <button
-          onClick={() => {
+        </Button>
+        <Button
+          // color="primary"
+          size="sm"
+          onPress={() => {
             setObj( ( s ) => {
               const newS = {
                 ...s,
@@ -120,22 +137,26 @@ export default function Replace() {
           }}
         >
           다른이름으로 저장
-        </button>
-        <button
-          onClick={() => {
+        </Button>
+        <Button
+          color="danger"
+          size="sm"
+          onPress={() => {
             doFileReload( ( s ) => !s )
           }}
         >
           초기화
-        </button>
-        <button
-          onClick={() => {
+        </Button>
+        <Button
+          color="success"
+          size="sm"
+          onPress={() => {
             setFile( null )
             navi( '/' )
           }}
         >
           홈으로
-        </button>
+        </Button>
       </div>
 
       <Reorder.Group
@@ -148,130 +169,39 @@ export default function Replace() {
         style={{ overflowY: 'auto' }}
       >
         {leaderBoard?.map( ( v, i ) => (
-          <ItemSlot value={v} index={i} key={v.car.carId} max={leaderBoard.length} reorder={setLeaderBoard} />
+          <ReaderBoardItemSlot
+            value={v}
+            index={i}
+            key={v.car.carId}
+            max={leaderBoard.length}
+            reorder={setLeaderBoard}
+          />
         ) )}
       </Reorder.Group>
+
       <div className={classname( ['info'] )}>
-        <div>
-          <p>
-            <span className={classname( ['title'] )}>파일 이름 : </span>
-            {file?.name || 'file name'}
-          </p>
-          <p>
-            <span className={classname( ['title'] )}>파일 위치 : </span>
-            {file?.path || 'file name'}
-          </p>
-          <br />
-          <br />
+        <p>
+          <span className={classname( ['title'] )}>파일 이름 : </span>
+          {file?.name || 'file name'}
+        </p>
+        <p>
+          <span className={classname( ['title'] )}>파일 위치 : </span>
+          {file?.path || 'file name'}
+        </p>
+        <br />
+        <br />
 
-          <p>
-            <span className={classname( ['title'] )}>서버 이름 : </span>
-            {obj?.serverName}
-          </p>
-          <br />
-          <p>
-            <span className={classname( ['title'] )}>트랙 : </span>
-            {obj?.trackName}
-          </p>
-        </div>
-        <div>
-          <p className={classname( ['title'] )}>대시보드 설명</p>
-          <br />
-          <div className={classname( ['example'] )}>
-            <p className={classname( ['index'] )}>등수</p>
-            <p className={classname( ['name'] )}>이름</p>
-            <p className={classname( ['total-time'] )}>total time</p>
-            <p className={classname( ['player-id'] )}>playerId</p>
-          </div>
-        </div>
+        <p>
+          <span className={classname( ['title'] )}>서버 이름 : </span>
+          {obj?.serverName}
+        </p>
+        <br />
+        <p>
+          <span className={classname( ['title'] )}>트랙 : </span>
+          {obj?.trackName}
+        </p>
       </div>
+      <ReaderBoardSetting isOpen={settingOptions.isOpen} onOpenChange={settingOptions.onOpenChange} />
     </main>
-  )
-}
-
-type itemValue = jsonFileType['sessionResult']['leaderBoardLines'][number]
-function ItemSlot( {
-  value: v,
-  index: i,
-  reorder,
-  max,
-}: {
-  value: itemValue
-  index: number
-  reorder: Dispatch<SetStateAction<itemValue[]>>
-  max: number
-} ) {
-  const controls = useDragControls()
-  const input = useRef<HTMLInputElement>( null )
-
-  return (
-    <Reorder.Item
-      as="div"
-      dragListener={false}
-      drag={'y'}
-      value={v}
-      className={classname( ['board'] )}
-      dragControls={controls}
-      whileDrag={{ borderColor: 'lightgreen' }}
-    >
-      <div className={classname( ['user-info'] )}>
-        <div className={classname( ['index'] )}># {i + 1}</div>
-        <div className={classname( ['name'] )}>{`${v.currentDriver.firstName} ${v.currentDriver.lastName}`}</div>
-        <div className={classname( ['total-time'] )}>{`${v.timing.totalTime}`}</div>
-        <div className={classname( ['player-id'] )}>{v.currentDriver.playerId}</div>
-      </div>
-
-      <div className={classname( ['control'] )}>
-        <div className={classname( ['input'] )}>
-          <input
-            ref={input}
-            key={i}
-            type="number"
-            min={1}
-            max={max}
-            defaultValue={i + 1}
-            onChange={( e ) => {
-              const first = e.target.value[0]
-              if ( first === '-' || first === '0' ) {
-                e.target.value = `${i + 1}`
-                return
-              }
-
-              if ( +e.target.value > max ) {
-                e.target.value = `${max}`
-                return
-              }
-            }}
-            onBlur={( e ) => {
-              if ( !e.target.value ) {
-                e.target.value = `${i + 1}`
-                return
-              }
-            }}
-          />
-          <button
-            onClick={() => {
-              reorder( ( s ) => {
-                const newS = [...s.slice( 0, i ), ...s.slice( i + 1 )]
-                newS.splice( +input.current.value - 1, 0, s[i] )
-                return newS
-              } )
-            }}
-          >
-            이동
-          </button>
-        </div>
-
-        <m.button
-          onPointerDown={( e ) => {
-            controls.start( e )
-          }}
-          className={classname( ['dragable'] )}
-          style={{ touchAction: 'none' }}
-        >
-          ↕
-        </m.button>
-      </div>
-    </Reorder.Item>
   )
 }

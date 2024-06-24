@@ -16,7 +16,57 @@
   "rules": {
     "space-in-parens": [1, "always"],
     "@typescript-eslint/ban-ts-comment": 0,
-    "import/no-unresolved": 0
+    "import/no-unresolved": 0,
+    "import/order": [
+      1,
+      {
+        "groups": ["builtin", "external", "internal", "parent", ["sibling", "index"], "unknown", "type"],
+        "pathGroups": [
+          {
+            "pattern": "react*",
+            "group": "builtin",
+            "position": "before"
+          },
+          {
+            "pattern": "@/hooks/*",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "@/components/*",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "@/zustand/*",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "@/utill/class-helper",
+            "group": "sibling",
+            "position": "after"
+          },
+          {
+            "pattern": "@/**",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "*.(s)?css",
+            "group": "index",
+            "position": "before"
+          }
+        ],
+        "newlines-between": "always",
+        "pathGroupsExcludedImportTypes": ["react", "@/utill/class-helper", "*.(s)?css"],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "distinctGroup": false
+      }
+    ]
   },
   "parser": "@typescript-eslint/parser"
 }

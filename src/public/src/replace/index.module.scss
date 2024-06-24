@@ -7,7 +7,7 @@
     'board menu'
     'board info';
   grid-template-columns: minmax(400px, 1fr) 300px;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: minmax(0, auto) 1fr;
   gap: 15px;
 
   & > div {
@@ -20,9 +20,10 @@
     grid-area: menu;
 
     display: flex;
-    flex-flow: row;
+    flex-flow: row wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 0.3rem;
 
     font-size: 14px;
   }
@@ -33,72 +34,6 @@
     display: flex;
     flex-flow: column;
     row-gap: 10px;
-
-    .board {
-      min-width: 310px;
-      padding: 10px;
-
-      display: flex;
-      flex-flow: row;
-      align-items: center;
-      justify-content: space-between;
-      column-gap: 10px;
-
-      border: 1px solid #fff;
-      border-radius: 5px;
-      background-color: #000;
-
-      .user-info {
-        flex: 0 1 auto;
-
-        display: flex;
-        flex-flow: row wrap;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 15px;
-
-        & :first-child {
-          font-size: 22px;
-        }
-
-        .index {
-          color: yellow;
-        }
-        // .name {
-        // }
-        .total-time {
-          color: aqua;
-        }
-        .player-id {
-          color: gray;
-        }
-      }
-
-      .control {
-        flex: 1 0 auto;
-
-        display: flex;
-        flex-flow: row;
-        align-items: center;
-        justify-content: flex-end;
-        column-gap: 35px;
-
-        .input {
-          & > input {
-            width: 70px;
-
-            margin-right: 5px;
-
-            background-color: adjust-color($color: gray, $lightness: -30%);
-          }
-        }
-        .dragable {
-          padding: 7px;
-
-          cursor: grab;
-        }
-      }
-    }
   }
   .info {
     grid-area: info;
@@ -106,9 +41,9 @@
     word-wrap: break-word;
     text-overflow: clip;
 
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: space-between;
+    // display: flex;
+    // flex-flow: column nowrap;
+    // justify-content: space-between;
 
     .title {
       color: darkgray;
@@ -136,18 +71,6 @@
           color: gray;
         }
       }
-    }
-  }
-
-  button {
-    padding: 5px 2px;
-    border: 1px solid adjust-color($color: gray, $lightness: -15%);
-    border-radius: 2px;
-
-    background-color: adjust-color($color: gray, $lightness: -30%);
-
-    &:hover {
-      background-color: adjust-color($color: gray, $lightness: -20%);
     }
   }
 }
