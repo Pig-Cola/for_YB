@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '@nextui-org/button'
+import { useDisclosure } from '@nextui-org/use-disclosure'
 import enc from 'encoding-japanese'
 import { Reorder } from 'framer-motion'
 import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
 
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
-import { ItemSlot } from '@/components/ItemSlot'
-import { useFileStore } from '@/zustand'
+import { ReaderBoardItemSlot } from '@/components/ItemSlot'
+import { MyIcon } from '@/components/my-icon'
+import { ReaderBoardSetting } from '@/components/readerBoardSetting'
+import { useFileStore } from '@/zustand/fileStore'
 
 import styles from './index.module.scss'
 import { classOption } from '@/utill/class-helper'
@@ -18,6 +22,7 @@ const { classname } = classOption( styles )
 export default function Replace() {
   const navi = useNavigate()
   const { ipcRenderer } = useIpcRenderer()
+  const settingOptions = useDisclosure()
 
   const [fileReload, doFileReload] = useState( false )
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
@@ -72,8 +77,13 @@ export default function Replace() {
   return (
     <main className={classname( ['main'] )}>
       <div className={classname( ['menu'] )}>
-        <button
-          onClick={async () => {
+        <Button size="sm" color="primary" onPress={settingOptions.onOpen}>
+          <MyIcon>cog</MyIcon>
+        </Button>
+        <Button
+          // color="primary"
+          size="sm"
+          onPress={async () => {
             if ( !confirm( '저장 후에는 초기화가 불가능 합니다.\n다른이름으로 저장했을 때에는 초기화 가능.' ) ) return
 
             setObj( ( s ) => {
@@ -93,9 +103,11 @@ export default function Replace() {
           }}
         >
           저장
-        </button>
-        <button
-          onClick={() => {
+        </Button>
+        <Button
+          // color="primary"
+          size="sm"
+          onPress={() => {
             setObj( ( s ) => {
               const newS = {
                 ...s,
@@ -125,22 +137,26 @@ export default function Replace() {
           }}
         >
           다른이름으로 저장
-        </button>
-        <button
-          onClick={() => {
+        </Button>
+        <Button
+          color="danger"
+          size="sm"
+          onPress={() => {
             doFileReload( ( s ) => !s )
           }}
         >
           초기화
-        </button>
-        <button
-          onClick={() => {
+        </Button>
+        <Button
+          color="success"
+          size="sm"
+          onPress={() => {
             setFile( null )
             navi( '/' )
           }}
         >
           홈으로
-        </button>
+        </Button>
       </div>
 
       <Reorder.Group
@@ -153,43 +169,39 @@ export default function Replace() {
         style={{ overflowY: 'auto' }}
       >
         {leaderBoard?.map( ( v, i ) => (
-          <ItemSlot value={v} index={i} key={v.car.carId} max={leaderBoard.length} reorder={setLeaderBoard} />
+          <ReaderBoardItemSlot
+            value={v}
+            index={i}
+            key={v.car.carId}
+            max={leaderBoard.length}
+            reorder={setLeaderBoard}
+          />
         ) )}
       </Reorder.Group>
-      <div className={classname( ['info'] )}>
-        <div>
-          <p>
-            <span className={classname( ['title'] )}>파일 이름 : </span>
-            {file?.name || 'file name'}
-          </p>
-          <p>
-            <span className={classname( ['title'] )}>파일 위치 : </span>
-            {file?.path || 'file name'}
-          </p>
-          <br />
-          <br />
 
-          <p>
-            <span className={classname( ['title'] )}>서버 이름 : </span>
-            {obj?.serverName}
-          </p>
-          <br />
-          <p>
-            <span className={classname( ['title'] )}>트랙 : </span>
-            {obj?.trackName}
-          </p>
-        </div>
-        <div>
-          <p className={classname( ['title'] )}>대시보드 설명</p>
-          <br />
-          <div className={classname( ['example'] )}>
-            <p className={classname( ['index'] )}>등수</p>
-            <p className={classname( ['name'] )}>이름</p>
-            <p className={classname( ['total-time'] )}>total time</p>
-            <p className={classname( ['player-id'] )}>playerId</p>
-          </div>
-        </div>
+      <div className={classname( ['info'] )}>
+        <p>
+          <span className={classname( ['title'] )}>파일 이름 : </span>
+          {file?.name || 'file name'}
+        </p>
+        <p>
+          <span className={classname( ['title'] )}>파일 위치 : </span>
+          {file?.path || 'file name'}
+        </p>
+        <br />
+        <br />
+
+        <p>
+          <span className={classname( ['title'] )}>서버 이름 : </span>
+          {obj?.serverName}
+        </p>
+        <br />
+        <p>
+          <span className={classname( ['title'] )}>트랙 : </span>
+          {obj?.trackName}
+        </p>
       </div>
+      <ReaderBoardSetting isOpen={settingOptions.isOpen} onOpenChange={settingOptions.onOpenChange} />
     </main>
   )
 }

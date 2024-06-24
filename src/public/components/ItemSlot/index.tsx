@@ -1,6 +1,9 @@
 import { type Dispatch, type SetStateAction, useRef } from 'react'
 
-import { Reorder, useDragControls, m } from 'framer-motion'
+import { Reorder, m, useDragControls } from 'framer-motion'
+import _ from 'lodash'
+
+import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
 
 import styles from './index.module.scss'
 import { classOption } from '@/utill/class-helper'
@@ -8,7 +11,7 @@ import { classOption } from '@/utill/class-helper'
 const { classname } = classOption( styles )
 
 type itemValue = jsonFileType['sessionResult']['leaderBoardLines'][number]
-export function ItemSlot( {
+export function ReaderBoardItemSlot( {
   value: v,
   index: i,
   reorder,
@@ -21,6 +24,7 @@ export function ItemSlot( {
 } ) {
   const controls = useDragControls()
   const input = useRef<HTMLInputElement>( null )
+  const { userProperties } = useSettingForLeaderBoard()
 
   return (
     <Reorder.Item
@@ -29,14 +33,19 @@ export function ItemSlot( {
       drag={'y'}
       value={v}
       className={classname( ['board'] )}
+      whileDrag={{ borderColor: 'lightgreen', scale: 0.95 }}
       dragControls={controls}
-      whileDrag={{ borderColor: 'lightgreen' }}
     >
       <div className={classname( ['user-info'] )}>
         <div className={classname( ['index'] )}># {i + 1}</div>
         <div className={classname( ['name'] )}>{`${v.currentDriver.firstName} ${v.currentDriver.lastName}`}</div>
-        <div className={classname( ['total-time'] )}>{`${v.timing.totalTime}`}</div>
-        <div className={classname( ['player-id'] )}>{v.currentDriver.playerId}</div>
+        {userProperties
+          ?.filter( ( item ) => item.isVisible )
+          .map( ( item ) => (
+            <div key={item.name} style={{ color: item.color }}>
+              {item.name}: {_( v ).get( item.getter, '잘못된 접근자 입니다.' )}
+            </div>
+          ) )}
       </div>
 
       <div className={classname( ['control'] )}>

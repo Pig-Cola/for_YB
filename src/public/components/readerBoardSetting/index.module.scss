@@ -1,0 +1,64 @@
+.modal {
+  max-height: calc(100% - 50px);
+  .input {
+    display: flex;
+    flex-flow: row nowrap;
+
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5px;
+
+    padding: 0 1rem;
+
+    .name {
+      flex: 1 5 auto;
+    }
+    .accessor {
+      flex: 3 3 auto;
+    }
+
+    .reset-btn {
+      width: 100%;
+
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-end;
+      align-items: center;
+    }
+  }
+
+  .custom-cell {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+
+    .code {
+      text-wrap: wrap;
+      word-break: break-all;
+
+      &:not([class~='isVisible']) {
+        text-decoration: line-through;
+        font-style: italic;
+        color: darkgray;
+      }
+    }
+
+    .btns {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+
+  .plus-btn-wapper {
+    display: flex;
+    flex-flow: row nowrap;
+
+    justify-content: space-between;
+    align-items: center;
+  }
+}
