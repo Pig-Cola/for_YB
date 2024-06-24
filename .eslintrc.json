@@ -38,22 +38,28 @@
             "position": "before"
           },
           {
-            "pattern": "@/*",
+            "pattern": "@/zustand/*",
             "group": "internal",
             "position": "before"
           },
           {
             "pattern": "@/utill/class-helper",
-            "group": "sibling"
-            // "position": "before"
+            "group": "sibling",
+            "position": "after"
           },
           {
-            "pattern": "*s?css",
-            "group": "index"
+            "pattern": "@/**",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "*.(s)?css",
+            "group": "index",
+            "position": "before"
           }
         ],
         "newlines-between": "always",
-        "pathGroupsExcludedImportTypes": ["react", "@/utill/class-helper", "*s?css"],
+        "pathGroupsExcludedImportTypes": ["react", "@/utill/class-helper", "*.(s)?css"],
         "alphabetize": {
           "order": "asc",
           "caseInsensitive": true

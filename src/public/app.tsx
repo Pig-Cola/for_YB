@@ -1,20 +1,27 @@
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
-
-import { createRoot } from 'react-dom/client'
-
 import '@/styles/reset.scss'
 import '@/styles/global.scss'
-import Home from '@/src'
+import '@/styles/my-icon/style.css'
+import '@/styles/tailwind_o.scss'
 
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+
+import { NextUIProvider } from '@nextui-org/react'
+import { createRoot } from 'react-dom/client'
+
+import Home from '@/src'
 import Replace from '@/src/replace'
 
 function App() {
   return (
     <MemoryRouter>
-      <Routes>
-        <Route path="/" Component={Home} />
-        <Route path="/replace" Component={Replace} />
-      </Routes>
+      <NextUIProvider>
+        <Routes>
+          <Route path="/">
+            <Route path="" Component={Home} />
+            <Route path="replace" element={<Replace />} />
+          </Route>
+        </Routes>
+      </NextUIProvider>
     </MemoryRouter>
   )
 }
