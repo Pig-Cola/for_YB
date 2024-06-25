@@ -18,7 +18,7 @@ const createWindow = (): void => {
   // Create the browser window.
   const mainWindow = new BrowserWindow( {
     height: 640,
-    width: 860,
+    width: 1080,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       contextIsolation: false,
@@ -39,17 +39,17 @@ const createWindow = (): void => {
       label: '설정',
       accelerator: 'alt + f',
       submenu: [
-        { role: 'reload', label: '새로고추장무침' },
+        { role: 'reload', label: '새로고추장무침', accelerator: 'ctrl + shift + r' },
         {
           label: 'zoom',
           submenu: [
-            { role: 'zoomIn', label: '너무 작아, 키워줘', accelerator: 'ctrl + =' },
-            { role: 'zoomOut', label: '너무 커, 줄여줘' },
+            { role: 'zoomIn', label: '키워줘', accelerator: 'ctrl + =' },
+            { role: 'zoomOut', label: '줄여줘' },
             { role: 'resetZoom', label: '줌 초기화' },
           ],
         },
         { role: 'togglefullscreen', label: '전체화면' },
-        { role: 'quit', label: 'ㅡㅏㅏㅏㅏㅏ (종료)', accelerator: 'ctrl + shift + w' },
+        { role: 'quit', label: '종료', accelerator: 'ctrl + shift + w' },
 
         ...( isDev ? [{ role: 'toggleDevTools' } as const] : [] ),
       ],
