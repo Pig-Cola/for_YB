@@ -24,7 +24,7 @@ const createWindow = (): void => {
       contextIsolation: false,
       nodeIntegration: true,
     },
-    minWidth: 500,
+    minWidth: 800,
     minHeight: 500,
     icon: './src/icon.ico',
 
@@ -57,6 +57,7 @@ const createWindow = (): void => {
   ] )
   mainWindow.center()
   mainWindow.setMenu( menu )
+  mainWindow.setAutoHideMenuBar( true )
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

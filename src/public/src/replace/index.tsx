@@ -7,15 +7,15 @@ import { useDisclosure } from '@nextui-org/use-disclosure'
 import enc from 'encoding-japanese'
 import { Reorder } from 'framer-motion'
 import _ from 'lodash'
-import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
 
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
-import { ReaderBoardItemSlot } from '@/components/ItemSlot'
+import { LeaderBoardItemSlot } from '@/components/ItemSlot'
+import { LeaderBoardSetting } from '@/components/leaderBoardSetting'
 import { MyIcon } from '@/components/my-icon'
-import { ReaderBoardSetting } from '@/components/readerBoardSetting'
 import { useFileStore } from '@/zustand/fileStore'
 import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
+import { getCarModelString } from '@/utill/getCarModel'
 
 import styles from './index.module.scss'
 import { classOption } from '@/utill/class-helper'
@@ -27,16 +27,16 @@ export default function Replace() {
   const { ipcRenderer } = useIpcRenderer()
   const settingOptions = useDisclosure()
 
-  const [fileReload, doFileReload] = useState( false )
+  const [fileReload, doFileReload] = useState( 0 )
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
   const [text, setText] = useState( '' ) // 파일 raw text
-  const [obj, setObj] = useState<jsonFileType>() // json 객체
+  const [obj, setObj] = useState<jsonFileTypeEx>() // json 객체
 
   const { userProperties } = useSettingForLeaderBoard()
 
   // 순위 결과 객체
-  const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
-  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  const [leaderBoard, setLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
+  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
 
   // file read
   useEffect( () => {
@@ -53,16 +53,15 @@ export default function Replace() {
 
     if ( !text ) return
 
-    const temp = JSON.parse( text ) as jsonFileType
-    temp.sessionResult.leaderBoardLines = temp.sessionResult.leaderBoardLines.map( ( v ) => {
-      if ( v.timing.bestLap !== 2147483647 ) return v
-      if ( v.timing.lastLap === 2147483647 ) return v
+    const temp = JSON.parse( text ) as jsonFileTypeEx
+    temp.sessionResult.leaderBoardLines.forEach( ( v ) => {
+      v.car.carModelString = getCarModelString( v.car.carModel )
 
-      const cloneValue = cloneDeep( v )
-      cloneValue.timing.bestLap = cloneValue.timing.lastLap
-      cloneValue.timing.bestSplits = cloneValue.timing.lastSplits
+      if ( v.timing.bestLap !== 2147483647 ) return
+      if ( v.timing.lastLap === 2147483647 ) return
 
-      return cloneValue
+      v.timing.bestLap = v.timing.lastLap
+      v.timing.bestSplits = v.timing.lastSplits
     } )
 
     setObj( temp )
@@ -87,29 +86,7 @@ export default function Replace() {
             <MyIcon>cog</MyIcon>
           </Button>
         </Tooltip>
-        <Button
-          size="sm"
-          onPress={async () => {
-            if ( !confirm( '저장 후에는 초기화가 불가능 합니다.\n다른이름으로 저장했을 때에는 초기화 가능.' ) ) return
 
-            setObj( ( s ) => {
-              const newS = {
-                ...s,
-                sessionResult: { ...s.sessionResult, leaderBoardLines: leaderBoard.concat( invalidLeaderBoard ) },
-              }
-              try {
-                return newS
-              } finally {
-                ipcRenderer.invoke( 'saveJson', newS, file.path ).then( () => {
-                  navi( '/' )
-                  alert( '저장되었습니다.' )
-                } )
-              }
-            } )
-          }}
-        >
-          저장
-        </Button>
         <Button
           // color="primary"
           size="sm"
@@ -136,7 +113,7 @@ export default function Replace() {
                   ),
                 )
                 link.download = 'file'
-                alert( '해당 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
+                alert( '원본 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
                 link.click()
               }
             } )
@@ -144,6 +121,19 @@ export default function Replace() {
         >
           다른이름으로 저장
         </Button>
+
+        <Tooltip content="순서 초기화" color="danger" placement="bottom">
+          <Button
+            color="danger"
+            size="sm"
+            onPress={() => {
+              doFileReload( ( s ) => ++s )
+            }}
+          >
+            초기화
+          </Button>
+        </Tooltip>
+
         <Tooltip color="success" content="Excel을 위한 데이터 복사" placement="bottom">
           <Button
             color="success"
@@ -197,17 +187,7 @@ export default function Replace() {
             표기 정보 복사
           </Button>
         </Tooltip>
-        <Tooltip content="순서 초기화" color="danger" placement="bottom">
-          <Button
-            color="danger"
-            size="sm"
-            onPress={() => {
-              doFileReload( ( s ) => !s )
-            }}
-          >
-            초기화
-          </Button>
-        </Tooltip>
+
         <Button
           color="secondary"
           size="sm"
@@ -220,25 +200,26 @@ export default function Replace() {
         </Button>
       </div>
 
-      <Reorder.Group
-        as="div"
-        className={classname( ['leaderBoardLines'] )}
-        axis="y"
-        layoutScroll
-        values={leaderBoard || []}
-        onReorder={setLeaderBoard}
-        style={{ overflowY: 'auto' }}
-      >
-        {leaderBoard?.map( ( v, i ) => (
-          <ReaderBoardItemSlot
-            value={v}
-            index={i}
-            key={v.car.carId}
-            max={leaderBoard.length}
-            reorder={setLeaderBoard}
-          />
-        ) )}
-      </Reorder.Group>
+      <div className={classname( ['leaderBoardLines-wrapper'] )}>
+        <Reorder.Group
+          as="div"
+          className={classname( ['leaderBoardLines'] )}
+          axis="y"
+          layoutScroll
+          values={leaderBoard || []}
+          onReorder={setLeaderBoard}
+        >
+          {leaderBoard?.map( ( v, i ) => (
+            <LeaderBoardItemSlot
+              value={v}
+              index={i}
+              key={`${v.car.carId}-${fileReload}`}
+              max={leaderBoard.length}
+              reorder={setLeaderBoard}
+            />
+          ) )}
+        </Reorder.Group>
+      </div>
 
       <div className={classname( ['info'] )}>
         <p>
@@ -262,7 +243,7 @@ export default function Replace() {
           {obj?.trackName}
         </p>
       </div>
-      <ReaderBoardSetting isOpen={settingOptions.isOpen} onOpenChange={settingOptions.onOpenChange} />
+      <LeaderBoardSetting isOpen={settingOptions.isOpen} onOpenChange={settingOptions.onOpenChange} />
     </main>
   )
 }

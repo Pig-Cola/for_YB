@@ -28,12 +28,18 @@
     font-size: 14px;
   }
 
-  .leaderBoardLines {
+  .leaderBoardLines-wrapper {
     grid-area: board;
+  }
+
+  .leaderBoardLines {
+    height: 100%;
 
     display: flex;
     flex-flow: column;
     row-gap: 10px;
+
+    overflow-y: auto;
   }
   .info {
     grid-area: info;

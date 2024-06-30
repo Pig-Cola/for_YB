@@ -4,8 +4,8 @@ interface customIpcRenderer<
   T extends Record<string, ( ...args: unknown[] ) => unknown>,
   K extends Exclude<keyof T, number | symbol> = Exclude<keyof T, number | symbol>,
 > extends Electron.IpcRenderer {
-  send( channel: K, ...args: Parameters<T[K]> ): void
-  sendSync( channel: K, ...args: Parameters<T[K]> ): ReturnType<T[K]>
+  send<J extends K>( channel: J, ...args: Parameters<T[J]> ): void
+  sendSync<J extends K>( channel: J, ...args: Parameters<T[J]> ): ReturnType<T[J]>
   invoke: {
     <J extends K>( channel: J, ...args: Parameters<T[J]> ): Promise<Awaited<ReturnType<T[J]>>>
   }
