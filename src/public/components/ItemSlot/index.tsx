@@ -1,7 +1,6 @@
-import { type Dispatch, type SetStateAction, useState } from 'react'
+import { type Dispatch, type SetStateAction, useRef } from 'react'
 
 import { Button } from '@nextui-org/button'
-import { Input } from '@nextui-org/react'
 import { Reorder, m, useDragControls } from 'framer-motion'
 import _ from 'lodash'
 
@@ -12,21 +11,18 @@ import { classOption } from '@/utill/class-helper'
 
 const { classname } = classOption( styles )
 
-type itemValue = jsonFileType['sessionResult']['leaderBoardLines'][number]
-export function ReaderBoardItemSlot( {
-  value: v,
-  index: i,
-  reorder,
-  max,
-}: {
+type itemValue = jsonFileTypeEx['sessionResult']['leaderBoardLines'][number]
+type LeaderBoardItemSlotProps = {
   value: itemValue
   index: number
   reorder: Dispatch<SetStateAction<itemValue[]>>
   max: number
-} ) {
+}
+
+export function LeaderBoardItemSlot( { value: v, index: i, reorder, max }: LeaderBoardItemSlotProps ) {
   const controls = useDragControls()
   const { userProperties } = useSettingForLeaderBoard()
-  const [inputValue, setInputValue] = useState( `${i + 1}` )
+  const inputRef = useRef<HTMLInputElement>( null )
 
   return (
     <Reorder.Item
@@ -45,9 +41,12 @@ export function ReaderBoardItemSlot( {
           ?.filter( ( item ) => item.isVisible )
           .map( ( item ) => (
             <div key={item.name} style={{ color: item.color }}>
-              {item.name}:{' '}
+              {item.isNameVisible ? `${item.name}: ` : ''}
               {( () => {
                 const temp = _( v ).get( item.getter, '잘못된 접근자 입니다.' )
+                if ( item.getter === 'car.carModel' && typeof temp === 'number' ) {
+                  return v.car.carModelString
+                }
                 if ( typeof temp === 'object' ) return '잘못된 접근자 입니다.'
                 return temp
               } )()}
@@ -57,28 +56,39 @@ export function ReaderBoardItemSlot( {
 
       <div className={classname( ['control'] )}>
         <div className={classname( ['input'] )}>
-          <Input
+          <input
             key={i}
+            ref={inputRef}
             type="number"
             min={1}
             max={max}
-            value={inputValue}
-            onValueChange={( value ) => {
+            onChange={( e ) => {
+              const value = e.currentTarget.value
               const first = value[0]
-              if ( first === '-' || first === '0' ) return setInputValue( `${i + 1}` )
-              if ( +value > max ) return setInputValue( `${max}` )
-              return setInputValue( value )
+              if ( first === '-' || first === '0' ) {
+                e.currentTarget.value = `${i + 1}`
+                return
+              }
+              if ( value !== '' && +value > max ) {
+                e.currentTarget.value = `${max}`
+                return
+              }
             }}
-            onBlur={() => {
-              setInputValue( ( s ) => s || `${i + 1}` )
+            onBlur={( e ) => {
+              const value = e.currentTarget.value
+              if ( value === '' ) {
+                e.currentTarget.value = `${i + 1}`
+              }
             }}
-          ></Input>
+            defaultValue={`${i + 1}`}
+          ></input>
           <Button
             size="sm"
             onPress={() => {
               reorder( ( s ) => {
                 const newS = [...s.slice( 0, i ), ...s.slice( i + 1 )]
-                newS.splice( +inputValue - 1, 0, s[i] )
+
+                newS.splice( +inputRef.current.value - 1, 0, s[i] )
                 return newS
               } )
             }}
