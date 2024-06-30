@@ -23,7 +23,7 @@ type ReaderBoardSettingProps = {
 }
 
 const RegPath = /^[a-zA-Z][a-zA-Z0-9]*(\.?[a-zA-Z][a-zA-Z0-9]*)*$/
-export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSettingProps ) {
+export function LeaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSettingProps ) {
   const {
     defaultProperties,
     userProperties,
@@ -38,8 +38,8 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
   const [inputName, setInputName] = useState( '' )
   const [inputAccessor, setInputAccessor] = useState( '' )
   const [inputErr, setInputErr] = useState( { name: false, accessor: false } )
-  const [forceR, setR] = useState( 0 )
   const [isEditOpen, setEditOpen] = useState( -1 )
+  const [forceR, setR] = useState( 0 )
 
   const displayData = useMemo( () => [...defaultProperties, ...userProperties], [defaultProperties, userProperties] )
 
@@ -55,8 +55,9 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
 
   const reset = useCallback( () => {
     _reset()
-    setSelectedName( '' )
     setR( ( s ) => ++s )
+    setInputName( '' )
+    setInputAccessor( '' )
   }, [_reset] )
 
   return (
@@ -92,15 +93,16 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
               <MyIcon>arrow-down2</MyIcon>
             </Button>
             <div className={classname( ['reset-btn'] )}>
-              <Button
-                color="danger"
-                onPress={() => {
-                  if ( !confirm( '설정한 접근자가 초기화 됩니다.\n정말 실행 하시겠습니까?' ) ) return
-                  reset()
-                }}
-              >
-                초기화
-              </Button>
+              <Tooltip content="접근자 설정을 초기화 합니다" color="danger">
+                <Button
+                  color="danger"
+                  onPress={() => {
+                    reset()
+                  }}
+                >
+                  초기화
+                </Button>
+              </Tooltip>
             </div>
           </div>
 
@@ -129,6 +131,7 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
                   isImmutable: false,
                   isVisible: true,
                   color: '#ffffff',
+                  isNameVisible: true,
                 } )
                 setInputName( '' )
                 setInputAccessor( '' )
@@ -169,7 +172,17 @@ export function ReaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
                 return (
                   <TableRow key={item.name}>
                     <TableCell>
-                      <span style={{ color: item.color }}>{item.name}</span>
+                      <div className={classname( ['custom-name'] )}>
+                        <Button
+                          size="sm"
+                          onPress={() => {
+                            editUserProperties( { ...item, isNameVisible: !item.isNameVisible } )
+                          }}
+                        >
+                          <MyIcon>{`eye${item.isNameVisible ? '' : '-blocked'}`}</MyIcon>
+                        </Button>
+                        <span style={{ color: item.color }}>{`${item.name}`}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className={classname( ['custom-cell'] )}>

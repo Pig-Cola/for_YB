@@ -27,6 +27,13 @@
     }
   }
 
+  .custom-name {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5rem;
+  }
   .custom-cell {
     display: flex;
     flex-flow: row nowrap;
