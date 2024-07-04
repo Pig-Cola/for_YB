@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ESNext",
     "allowJs": true,
     "module": "commonjs",
     "skipLibCheck": true,
@@ -12,10 +12,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "paths": {
-      // "*": ["node_modules/*"],
       "@/*": ["src/public/*"]
     },
     "jsx": "react-jsx"
-  },
-  "include": ["src/**/*"]
+  }
 }
