@@ -20,10 +20,11 @@ const { classname } = classOption( styles )
 type ReaderBoardSettingProps = {
   isOpen: boolean
   onOpenChange: () => void
+  targetRef?: React.RefObject<HTMLElement>
 }
 
 const RegPath = /^[a-zA-Z][a-zA-Z0-9]*(\.?[a-zA-Z][a-zA-Z0-9]*)*$/
-export function LeaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSettingProps ) {
+export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderBoardSettingProps ) {
   const {
     defaultProperties,
     userProperties,
@@ -49,6 +50,14 @@ export function LeaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
   useEffect( () => {
     setInputErr( ( s ) => ( { ...s, accessor: !RegPath.test( inputAccessor ) && !!inputAccessor.length } ) )
   }, [inputAccessor] )
+
+  useEffect( () => {
+    if ( isOpen ) {
+      targetRef?.current?.setAttribute( 'inert', '' )
+    } else {
+      targetRef?.current?.removeAttribute( 'inert' )
+    }
+  }, [isOpen, targetRef] )
 
   const disable = useMemo( () => displayData.filter( ( v ) => v.isImmutable ).map( ( v ) => v.name ), [displayData] )
   const [selectedName, setSelectedName] = useState<string>()
@@ -97,6 +106,7 @@ export function LeaderBoardSetting( { isOpen, onOpenChange }: ReaderBoardSetting
                 <Button
                   color="danger"
                   onPress={() => {
+                    if ( !confirm( '사용자의 모든 접근자가 초기화됩니다.\n진행하시겠습니까?' ) ) return
                     reset()
                   }}
                 >

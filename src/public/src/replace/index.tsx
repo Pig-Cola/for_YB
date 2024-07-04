@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@nextui-org/button'
@@ -6,7 +6,7 @@ import { Tooltip } from '@nextui-org/tooltip'
 import { useDisclosure } from '@nextui-org/use-disclosure'
 import enc from 'encoding-japanese'
 import { Reorder } from 'framer-motion'
-import _ from 'lodash'
+import { default as _get } from 'lodash/get'
 import partition from 'lodash/partition'
 
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
@@ -26,6 +26,7 @@ export default function Replace() {
   const navi = useNavigate()
   const { ipcRenderer } = useIpcRenderer()
   const settingOptions = useDisclosure()
+  const mainRef = useRef<HTMLDivElement>( null )
 
   const [fileReload, doFileReload] = useState( 0 )
   const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
@@ -79,7 +80,8 @@ export default function Replace() {
 
   // render
   return (
-    <main className={classname( ['main'] )}>
+    <main className={classname( ['main'] )} ref={mainRef}>
+      {/* menu-start */}
       <div className={classname( ['menu'] )}>
         <Tooltip content="설정">
           <Button size="sm" onPress={settingOptions.onOpen}>
@@ -138,7 +140,7 @@ export default function Replace() {
           <Button
             color="success"
             size="sm"
-            onPress={() => {
+            onPress={async () => {
               const visible = userProperties.filter( ( v ) => v.isVisible )
               const table = document.createElement( 'table' )
               const thead = document.createElement( 'thead' )
@@ -170,7 +172,7 @@ export default function Replace() {
                 )
                 visible.forEach( ( { getter } ) => {
                   const td = document.createElement( 'td' )
-                  td.innerText = _( item ).get( getter, '잘못된 접근자 입니다' )
+                  td.innerText = _get( item, getter, '잘못된 접근자 입니다' )
                   tr.appendChild( td )
                 } )
                 tbody.appendChild( tr )
@@ -199,6 +201,7 @@ export default function Replace() {
           홈으로
         </Button>
       </div>
+      {/* menu-end */}
 
       <div className={classname( ['leaderBoardLines-wrapper'] )}>
         <Reorder.Group
@@ -243,7 +246,12 @@ export default function Replace() {
           {obj?.trackName}
         </p>
       </div>
-      <LeaderBoardSetting isOpen={settingOptions.isOpen} onOpenChange={settingOptions.onOpenChange} />
+
+      <LeaderBoardSetting
+        isOpen={settingOptions.isOpen}
+        onOpenChange={settingOptions.onOpenChange}
+        targetRef={mainRef}
+      />
     </main>
   )
 }
