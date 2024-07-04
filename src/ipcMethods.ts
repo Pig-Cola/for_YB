@@ -1,4 +1,4 @@
-import { ipcMain as _ipcMain } from 'electron'
+import { ipcMain as _ipcMain, BrowserWindow } from 'electron'
 import * as fsP from 'fs/promises'
 
 import enc, { type Encoding } from 'encoding-japanese'
@@ -6,6 +6,7 @@ import enc, { type Encoding } from 'encoding-japanese'
 export type IpcHandler = {
   saveJson: ( obj: jsonFileType, filePath: File['path'] ) => Promise<void>
   readFile: ( filePath: File['path'] ) => Promise<string>
+  forceFocus: () => Promise<void>
 }
 
 interface customIpcMain<
@@ -38,4 +39,10 @@ ipcMain.handle( 'readFile', async ( e, filePath: File['path'] ) => {
   const str = enc.codeToString( conv )
 
   return str
+} )
+
+ipcMain.handle( 'forceFocus', async () => {
+  const temp = new BrowserWindow( { height: 0, width: 0 } )
+  temp.close()
+  return
 } )
