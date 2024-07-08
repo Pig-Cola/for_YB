@@ -3,49 +3,53 @@ import '@/styles/global.scss'
 import '@/styles/my-icon/style.css'
 import '@/styles/tailwind_o.scss'
 
-import { useEffect } from 'react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { RouterProvider, createMemoryRouter } from 'react-router-dom'
+import type { RouteObject, RouteProps } from 'react-router-dom'
 
 import { NextUIProvider } from '@nextui-org/react'
 import { createRoot } from 'react-dom/client'
 
-import Home from '@/src'
-import Replace from '@/src/replace'
+import { useFocusWithLikeAlert } from './hooks/useFocusWithLikeAlert'
 
-import { useIpcRenderer } from './hooks/useIpcRenderer'
+const pages = import.meta.glob( './pages/**/*.ts?(x)', { eager: true, import: 'default' } )
 
-const oldFn = {
-  alert,
-  confirm,
+// './pages/replace/index.tsx'
+const routeObj = [] as RouteObject[]
+for ( const i in pages ) {
+  const Component = pages[i] as RouteProps['Component']
+  const pathArr = i.replace( /^\.\/pages/, '' ).split( '/' )
+  const file = pathArr.pop().replace( /\.(j|t)sx?$/, '' )
+
+  let target = routeObj
+  pathArr.forEach( ( targetPath ) => {
+    const temp = target.find( ( { path } ) => path === targetPath )
+    if ( !temp ) {
+      const newTemp = { path: targetPath, children: [] } as RouteObject
+      target.push( newTemp )
+      target = newTemp.children
+    } else {
+      target = temp.children
+    }
+  } )
+
+  if ( file !== 'index' ) {
+    const newTemp = { path: file, children: [] } as RouteObject
+    target.push( newTemp )
+    target = newTemp.children
+  }
+
+  target.push( { path: '', Component } )
 }
 
+const memory = createMemoryRouter( routeObj )
+
 function App() {
-  const { ipcRenderer } = useIpcRenderer()
-  useEffect( () => {
-    ( { alert: window.alert, confirm: window.confirm } = Object.fromEntries(
-      Object.entries( oldFn ).map( ( [key, fn] ) => [
-        key,
-        ( arg?: string ) => {
-          try {
-            return fn( arg )
-          } finally {
-            ipcRenderer.invoke( 'forceFocus' )
-          }
-        },
-      ] ),
-    ) as { alert: typeof oldFn.alert; confirm: typeof oldFn.confirm } )
-  }, [ipcRenderer] )
+  useFocusWithLikeAlert()
+
   return (
-    <MemoryRouter>
-      <NextUIProvider>
-        <Routes>
-          <Route path="/">
-            <Route path="" Component={Home} />
-            <Route path="replace" element={<Replace />} />
-          </Route>
-        </Routes>
-      </NextUIProvider>
-    </MemoryRouter>
+    <NextUIProvider>
+      <RouterProvider router={memory}></RouterProvider>
+    </NextUIProvider>
   )
 }
 
