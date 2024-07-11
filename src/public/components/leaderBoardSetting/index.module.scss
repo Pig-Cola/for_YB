@@ -8,7 +8,7 @@
     align-items: center;
     gap: 5px;
 
-    padding: 0 1rem;
+    margin-bottom: 1rem;
 
     .name {
       flex: 1 5 auto;
@@ -27,6 +27,13 @@
     }
   }
 
+  .custom-name {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5rem;
+  }
   .custom-cell {
     display: flex;
     flex-flow: row nowrap;

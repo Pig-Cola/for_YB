@@ -3,26 +3,20 @@ import '@/styles/global.scss'
 import '@/styles/my-icon/style.css'
 import '@/styles/tailwind_o.scss'
 
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 
 import { NextUIProvider } from '@nextui-org/react'
 import { createRoot } from 'react-dom/client'
 
-import Home from '@/src'
-import Replace from '@/src/replace'
+import { routeObj } from './dynamicRoute'
+
+const memory = createMemoryRouter( routeObj )
 
 function App() {
   return (
-    <MemoryRouter>
-      <NextUIProvider>
-        <Routes>
-          <Route path="/">
-            <Route path="" Component={Home} />
-            <Route path="replace" element={<Replace />} />
-          </Route>
-        </Routes>
-      </NextUIProvider>
-    </MemoryRouter>
+    <NextUIProvider>
+      <RouterProvider router={memory}></RouterProvider>
+    </NextUIProvider>
   )
 }
 

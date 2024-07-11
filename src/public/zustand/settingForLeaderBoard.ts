@@ -10,6 +10,7 @@ export type LeaderBoardItem = {
   isVisible: boolean
   isImmutable: boolean
   color: string
+  isNameVisible: boolean
 }
 type LocalStore_State = {
   defaultProperties: LeaderBoardItem[]
@@ -25,16 +26,52 @@ type LocalStore_Method = {
 }
 
 const initUserProperties: LocalStore_State['userProperties'] = [
-  { name: 'Total Time', getter: 'timing.totalTime', isImmutable: false, isVisible: true, color: '#00ffff' },
-  { name: 'CarModel', getter: 'car.carModel', isImmutable: false, isVisible: true, color: '#ffc0cb' },
-  { name: 'player ID', getter: 'currentDriver.playerId', isImmutable: false, isVisible: false, color: '#808080' },
+  {
+    name: 'Total Time',
+    getter: 'timing.totalTime',
+    isImmutable: false,
+    isVisible: true,
+    color: '#00ffff',
+    isNameVisible: true,
+  },
+  {
+    name: 'CarModel',
+    getter: 'car.carModel',
+    isImmutable: false,
+    isVisible: true,
+    color: '#ffc0cb',
+    isNameVisible: true,
+  },
+  {
+    name: 'player ID',
+    getter: 'currentDriver.playerId',
+    isImmutable: false,
+    isVisible: false,
+    color: '#808080',
+    isNameVisible: true,
+  },
+  {
+    name: 'lap count',
+    getter: 'timing.lapCount',
+    isImmutable: false,
+    isVisible: true,
+    color: '#6eed90',
+    isNameVisible: true,
+  },
 ]
 
 export const useSettingForLeaderBoard = create<LocalStore_State & LocalStore_Method>()(
   persist(
     ( set ) => ( {
       defaultProperties: [
-        { name: 'name', getter: '변경 불가능', isVisible: true, isImmutable: true, color: '#ffffff' },
+        {
+          name: 'name',
+          getter: '변경 불가능',
+          isVisible: true,
+          isImmutable: true,
+          color: '#ffffff',
+          isNameVisible: false,
+        },
       ],
       userProperties: [...initUserProperties],
 
@@ -84,6 +121,29 @@ export const useSettingForLeaderBoard = create<LocalStore_State & LocalStore_Met
         defaultProperties,
         userProperties,
       } ),
+      version: 2,
+      migrate: ( ps, ver ) => {
+        const temp = { ...( ps as any ) }
+        switch ( ver ) {
+          case 0: {
+            console.log( 'v0 -> v1' )
+            temp.userProperties = temp.userProperties.map( ( v: any ) => ( { ...v, isNameVisible: true } ) )
+          }
+          // falls through
+          case 1: {
+            console.log( 'v1 -> v2' )
+            temp.userProperties.push( {
+              name: 'lap count',
+              getter: 'timing.lapCount',
+              isImmutable: false,
+              isVisible: true,
+              color: '#6eed90',
+              isNameVisible: true,
+            } )
+          }
+        }
+        return temp
+      },
     },
   ),
 )

@@ -1,21 +1,15 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
 
-import { Button } from '@nextui-org/button'
-import { Tooltip } from '@nextui-org/tooltip'
 import { useDisclosure } from '@nextui-org/use-disclosure'
-import enc from 'encoding-japanese'
 import { Reorder } from 'framer-motion'
-import _ from 'lodash'
-import cloneDeep from 'lodash/cloneDeep'
 import partition from 'lodash/partition'
 
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
-import { ReaderBoardItemSlot } from '@/components/ItemSlot'
-import { MyIcon } from '@/components/my-icon'
-import { ReaderBoardSetting } from '@/components/readerBoardSetting'
+import { LeaderBoardItemSlot } from '@/components/ItemSlot'
+import { LeaderBoardSetting } from '@/components/leaderBoardSetting'
+import Menu from '@/components/menu'
 import { useFileStore } from '@/zustand/fileStore'
-import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
+import { getCarModelString } from '@/utill/getCarModel'
 
 import styles from './index.module.scss'
 import { classOption } from '@/utill/class-helper'
@@ -23,20 +17,25 @@ import { classOption } from '@/utill/class-helper'
 const { classname } = classOption( styles )
 
 export default function Replace() {
-  const navi = useNavigate()
   const { ipcRenderer } = useIpcRenderer()
   const settingOptions = useDisclosure()
+  const mainRef = useRef<HTMLDivElement>( null )
 
-  const [fileReload, doFileReload] = useState( false )
-  const { file, setFile } = useFileStore( ( s ) => s ) // 선택된 파일 객체
+  const [fileReload, doFileReload] = useState( 0 )
+  const { file } = useFileStore( ( s ) => s ) // 선택된 파일 객체
   const [text, setText] = useState( '' ) // 파일 raw text
-  const [obj, setObj] = useState<jsonFileType>() // json 객체
-
-  const { userProperties } = useSettingForLeaderBoard()
+  const [obj, setObj] = useState<jsonFileTypeEx>() // json 객체
 
   // 순위 결과 객체
-  const [leaderBoard, setLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
-  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileType['sessionResult']['leaderBoardLines']>()
+  const [leaderBoard, setLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
+  const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
+
+  const [penalty, setPenalty] = useState( {} as Record<string, `${number}`> )
+  useEffect( () => {
+    void fileReload
+
+    setPenalty( {} )
+  }, [fileReload] )
 
   // file read
   useEffect( () => {
@@ -53,16 +52,15 @@ export default function Replace() {
 
     if ( !text ) return
 
-    const temp = JSON.parse( text ) as jsonFileType
-    temp.sessionResult.leaderBoardLines = temp.sessionResult.leaderBoardLines.map( ( v ) => {
-      if ( v.timing.bestLap !== 2147483647 ) return v
-      if ( v.timing.lastLap === 2147483647 ) return v
+    const temp = JSON.parse( text ) as jsonFileTypeEx
+    temp.sessionResult.leaderBoardLines.forEach( ( v ) => {
+      v.car.carModelString = getCarModelString( v.car.carModel )
 
-      const cloneValue = cloneDeep( v )
-      cloneValue.timing.bestLap = cloneValue.timing.lastLap
-      cloneValue.timing.bestSplits = cloneValue.timing.lastSplits
+      if ( v.timing.bestLap !== 2147483647 ) return
+      if ( v.timing.lastLap === 2147483647 ) return
 
-      return cloneValue
+      v.timing.bestLap = v.timing.lastLap
+      v.timing.bestSplits = v.timing.lastSplits
     } )
 
     setObj( temp )
@@ -80,36 +78,15 @@ export default function Replace() {
 
   // render
   return (
-    <main className={classname( ['main'] )}>
-      <div className={classname( ['menu'] )}>
+    <main className={classname( ['main'] )} ref={mainRef}>
+      {/* menu-start */}
+      {/* <div className={classname( ['menu'] )}>
         <Tooltip content="설정">
           <Button size="sm" onPress={settingOptions.onOpen}>
             <MyIcon>cog</MyIcon>
           </Button>
         </Tooltip>
-        <Button
-          size="sm"
-          onPress={async () => {
-            if ( !confirm( '저장 후에는 초기화가 불가능 합니다.\n다른이름으로 저장했을 때에는 초기화 가능.' ) ) return
 
-            setObj( ( s ) => {
-              const newS = {
-                ...s,
-                sessionResult: { ...s.sessionResult, leaderBoardLines: leaderBoard.concat( invalidLeaderBoard ) },
-              }
-              try {
-                return newS
-              } finally {
-                ipcRenderer.invoke( 'saveJson', newS, file.path ).then( () => {
-                  navi( '/' )
-                  alert( '저장되었습니다.' )
-                } )
-              }
-            } )
-          }}
-        >
-          저장
-        </Button>
         <Button
           // color="primary"
           size="sm"
@@ -127,7 +104,14 @@ export default function Replace() {
                   new Blob(
                     [
                       enc.codeToString(
-                        enc.convert( new Uint16Array( enc.stringToCode( JSON.stringify( newS, undefined, 2 ) ) ), 'UTF16LE' ),
+                        enc.convert(
+                          new Uint16Array(
+                            enc.stringToCode(
+                              JSON.stringify( newS, ( key, value ) => ( key !== 'carModelString' ? value : undefined ), 2 ),
+                            ),
+                          ),
+                          'UTF16LE',
+                        ),
                       ),
                     ],
                     {
@@ -136,7 +120,7 @@ export default function Replace() {
                   ),
                 )
                 link.download = 'file'
-                alert( '해당 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
+                alert( '원본 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
                 link.click()
               }
             } )
@@ -144,11 +128,24 @@ export default function Replace() {
         >
           다른이름으로 저장
         </Button>
+
+        <Tooltip content="순서 초기화" color="danger" placement="bottom">
+          <Button
+            color="danger"
+            size="sm"
+            onPress={() => {
+              doFileReload( ( s ) => ++s )
+            }}
+          >
+            초기화
+          </Button>
+        </Tooltip>
+
         <Tooltip color="success" content="Excel을 위한 데이터 복사" placement="bottom">
           <Button
             color="success"
             size="sm"
-            onPress={() => {
+            onPress={async () => {
               const visible = userProperties.filter( ( v ) => v.isVisible )
               const table = document.createElement( 'table' )
               const thead = document.createElement( 'thead' )
@@ -180,7 +177,7 @@ export default function Replace() {
                 )
                 visible.forEach( ( { getter } ) => {
                   const td = document.createElement( 'td' )
-                  td.innerText = _( item ).get( getter, '잘못된 접근자 입니다' )
+                  td.innerText = _get( item, getter, '잘못된 접근자 입니다' )
                   tr.appendChild( td )
                 } )
                 tbody.appendChild( tr )
@@ -197,17 +194,34 @@ export default function Replace() {
             표기 정보 복사
           </Button>
         </Tooltip>
-        <Tooltip content="순서 초기화" color="danger" placement="bottom">
+
+        <Tooltip color="primary" placement="bottom" content="일부 기능만 작동">
           <Button
-            color="danger"
+            color="primary"
             size="sm"
             onPress={() => {
-              doFileReload( ( s ) => !s )
+              if ( !confirm( '기존 정렬을 무시하고 재정렬 됩니다.' ) ) return
+
+              setLeaderBoard( ( s ) => {
+                const temp = s
+                  .toSorted(
+                    ( a, b ) =>
+                      a.timing.totalTime +
+                      ( +penalty[a.currentDriver.playerId] || 0 ) -
+                      ( b.timing.totalTime + ( +penalty[b.currentDriver.playerId] || 0 ) ),
+                  )
+                  .toSorted( ( a, b ) => b.timing.lapCount - a.timing.lapCount )
+
+                console.log( s )
+                console.log( temp )
+                return temp
+              } )
             }}
           >
-            초기화
+            사용자 정렬
           </Button>
         </Tooltip>
+
         <Button
           color="secondary"
           size="sm"
@@ -218,27 +232,41 @@ export default function Replace() {
         >
           홈으로
         </Button>
-      </div>
+      </div> */}
+      <Menu
+        {...{
+          doFileReload,
+          invalidLeaderBoard,
+          leaderBoard,
+          penalty,
+          setLeaderBoard,
+          setObj,
+          settingOptions,
+        }}
+      />
+      {/* menu-end */}
 
-      <Reorder.Group
-        as="div"
-        className={classname( ['leaderBoardLines'] )}
-        axis="y"
-        layoutScroll
-        values={leaderBoard || []}
-        onReorder={setLeaderBoard}
-        style={{ overflowY: 'auto' }}
-      >
-        {leaderBoard?.map( ( v, i ) => (
-          <ReaderBoardItemSlot
-            value={v}
-            index={i}
-            key={v.car.carId}
-            max={leaderBoard.length}
-            reorder={setLeaderBoard}
-          />
-        ) )}
-      </Reorder.Group>
+      <div className={classname( ['leaderBoardLines-wrapper'] )}>
+        <Reorder.Group
+          as="div"
+          className={classname( ['leaderBoardLines'] )}
+          axis="y"
+          layoutScroll
+          values={leaderBoard || []}
+          onReorder={setLeaderBoard}
+        >
+          {leaderBoard?.map( ( v, i ) => (
+            <LeaderBoardItemSlot
+              value={v}
+              index={i}
+              key={`${v.car.carId}-${fileReload}`}
+              // max={leaderBoard.length}
+              // reorder={setLeaderBoard}
+              setPenalty={setPenalty}
+            />
+          ) )}
+        </Reorder.Group>
+      </div>
 
       <div className={classname( ['info'] )}>
         <p>
@@ -261,8 +289,18 @@ export default function Replace() {
           <span className={classname( ['title'] )}>트랙 : </span>
           {obj?.trackName}
         </p>
+
+        <div className={classname( ['noti'] )}>
+          <span style={{ backgroundColor: '#006fee', color: '#fff', padding: '0.1rem' }}>사용자 정렬</span>기능은 현재
+          같은 랩 수에서 'TotalTime + 페널티'의 오름차순 정렬만 지원합니다.
+        </div>
       </div>
-      <ReaderBoardSetting isOpen={settingOptions.isOpen} onOpenChange={settingOptions.onOpenChange} />
+
+      <LeaderBoardSetting
+        isOpen={settingOptions.isOpen}
+        onOpenChange={settingOptions.onOpenChange}
+        targetRef={mainRef}
+      />
     </main>
   )
 }
