@@ -1,7 +1,7 @@
 import { BrowserWindow, Menu } from 'electron'
 import path from 'node:path'
 
-const isDev = process.argv[2] === 'dev'
+import { isDev } from './isDev'
 
 export const createWindow = () => {
   // Create the browser window.
