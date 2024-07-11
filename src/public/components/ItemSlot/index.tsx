@@ -101,51 +101,10 @@ export function LeaderBoardItemSlot( {
           </button>
         </div>
 
-        {/* <div className={classname( ['input'] )}>
-          <input
-            key={i}
-            ref={inputRef}
-            type="number"
-            min={1}
-            max={max}
-            onChange={( e ) => {
-              const value = e.currentTarget.value
-              const first = value[0]
-              if ( first === '-' || first === '0' ) {
-                e.currentTarget.value = `${i + 1}`
-                return
-              }
-              if ( value !== '' && +value > max ) {
-                e.currentTarget.value = `${max}`
-                return
-              }
-            }}
-            onBlur={( e ) => {
-              const value = e.currentTarget.value
-              if ( value === '' ) {
-                e.currentTarget.value = `${i + 1}`
-              }
-            }}
-            defaultValue={`${i + 1}`}
-          ></input>
-          <Button
-            size="sm"
-            onPress={() => {
-              reorder( ( s ) => {
-                const newS = [...s.slice( 0, i ), ...s.slice( i + 1 )]
-
-                newS.splice( +inputRef.current.value - 1, 0, s[i] )
-                return newS
-              } )
-            }}
-          >
-            이동
-          </Button>
-        </div> */}
         <div className={classname( ['input'] )}>
           <Input
             size="sm"
-            label="패널티 입력"
+            label="패널티 입력 (단위: 초)"
             type="number"
             variant="underlined"
             min={0}
@@ -156,7 +115,7 @@ export function LeaderBoardItemSlot( {
               }
             }}
             onValueChange={( v ) => {
-              setPenalty( ( s ) => ( { ...s, [info.currentDriver.playerId]: v as `${number}` } ) )
+              setPenalty( ( s ) => ( { ...s, [info.currentDriver.playerId]: `${+v * 1000}` as `${number}` } ) )
             }}
           />
         </div>
