@@ -59,6 +59,10 @@ export const createWindow = () => {
   mainWindow.setMenu( menu )
   mainWindow.setAutoHideMenuBar( true )
 
+  mainWindow.webContents.session.addListener( 'will-download', ( e, item ) => {
+    item.setSaveDialogOptions( { title: '다른 이름으로 저장' } )
+  } )
+
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
