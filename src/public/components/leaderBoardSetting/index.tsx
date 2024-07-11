@@ -5,6 +5,7 @@ import { Code } from '@nextui-org/code'
 import { Input } from '@nextui-org/input'
 import { Modal, ModalHeader, ModalBody, ModalContent } from '@nextui-org/modal'
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@nextui-org/table'
+import { Tabs, Tab } from '@nextui-org/tabs'
 import { Tooltip } from '@nextui-org/tooltip'
 
 import { LeaderBoardItem, useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
@@ -59,7 +60,7 @@ export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderB
     }
   }, [isOpen, targetRef] )
 
-  const disable = useMemo( () => displayData.filter( ( v ) => v.isImmutable ).map( ( v ) => v.name ), [displayData] )
+  const disableKey = useMemo( () => displayData.filter( ( v ) => v.isImmutable ).map( ( v ) => v.name ), [displayData] )
   const [selectedName, setSelectedName] = useState<string>()
 
   const reset = useCallback( () => {
@@ -82,166 +83,175 @@ export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderB
       <ModalContent>
         <ModalHeader>리더보드 설정</ModalHeader>
         <ModalBody>
-          <div className={classname( ['input'] )}>
-            <Button
-              color="primary"
-              onPress={() => {
-                move2UserProperties( selectedName, -1 )
-              }}
-              isDisabled={!selectedName}
-            >
-              <MyIcon>arrow-up2</MyIcon>
-            </Button>
-            <Button
-              color="primary"
-              onPress={() => {
-                move2UserProperties( selectedName, 1 )
-              }}
-              isDisabled={!selectedName}
-            >
-              <MyIcon>arrow-down2</MyIcon>
-            </Button>
-            <div className={classname( ['reset-btn'] )}>
-              <Tooltip content="접근자 설정을 초기화 합니다" color="danger">
+          <Tabs variant="bordered">
+            <Tab key={'init'} title={'기본 설정'}>
+              <div className={classname( ['input'] )}>
                 <Button
-                  color="danger"
+                  color="primary"
                   onPress={() => {
-                    if ( !confirm( '사용자의 모든 접근자가 초기화됩니다.\n진행하시겠습니까?' ) ) return
-                    reset()
+                    move2UserProperties( selectedName, -1 )
+                  }}
+                  isDisabled={!selectedName}
+                >
+                  <MyIcon>arrow-up2</MyIcon>
+                </Button>
+                <Button
+                  color="primary"
+                  onPress={() => {
+                    move2UserProperties( selectedName, 1 )
+                  }}
+                  isDisabled={!selectedName}
+                >
+                  <MyIcon>arrow-down2</MyIcon>
+                </Button>
+                <div className={classname( ['reset-btn'] )}>
+                  <Tooltip content="접근자 설정을 초기화 합니다" color="danger">
+                    <Button
+                      color="danger"
+                      onPress={() => {
+                        if ( !confirm( '사용자의 모든 접근자가 초기화됩니다.\n진행하시겠습니까?' ) ) return
+                        reset()
+                      }}
+                    >
+                      초기화
+                    </Button>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className={classname( ['input'] )}>
+                <Input
+                  classNames={{ base: classname( ['name'] ) }}
+                  value={inputName}
+                  onValueChange={setInputName}
+                  label="이름"
+                  isInvalid={inputErr.name}
+                />
+                <Input
+                  classNames={{ base: classname( ['accessor'] ) }}
+                  value={inputAccessor}
+                  onValueChange={setInputAccessor}
+                  label="접근자"
+                  isInvalid={inputErr.accessor}
+                />
+                <Button
+                  color="primary"
+                  isDisabled={!( inputName.length && inputAccessor.length )}
+                  onPress={() => {
+                    pushUserPropperties( {
+                      name: inputName,
+                      getter: inputAccessor,
+                      isImmutable: false,
+                      isVisible: true,
+                      color: '#ffffff',
+                      isNameVisible: true,
+                    } )
+                    setInputName( '' )
+                    setInputAccessor( '' )
                   }}
                 >
-                  초기화
+                  <MyIcon>plus</MyIcon>
                 </Button>
-              </Tooltip>
-            </div>
-          </div>
+              </div>
 
-          <div className={classname( ['input'] )}>
-            <Input
-              classNames={{ base: classname( ['name'] ) }}
-              value={inputName}
-              onValueChange={setInputName}
-              label="이름"
-              isInvalid={inputErr.name}
-            />
-            <Input
-              classNames={{ base: classname( ['accessor'] ) }}
-              value={inputAccessor}
-              onValueChange={setInputAccessor}
-              label="접근자"
-              isInvalid={inputErr.accessor}
-            />
-            <Button
-              color="primary"
-              isDisabled={!( inputName.length && inputAccessor.length )}
-              onPress={() => {
-                pushUserPropperties( {
-                  name: inputName,
-                  getter: inputAccessor,
-                  isImmutable: false,
-                  isVisible: true,
-                  color: '#ffffff',
-                  isNameVisible: true,
-                } )
-                setInputName( '' )
-                setInputAccessor( '' )
-              }}
-            >
-              <MyIcon>plus</MyIcon>
-            </Button>
-          </div>
-
-          <Table
-            disabledKeys={disable}
-            selectionMode="single"
-            color="primary"
-            onSelectionChange={( k ) => setSelectedName( [...k][0] as string )}
-            key={forceR}
-          >
-            <TableHeader>
-              <TableColumn key="name">이름</TableColumn>
-              <TableColumn key="getter">설정된 접근자</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {/* {( item ) => (
-                  <TableRow key={`${item.name}`}>
-                    {( colkey ) => (
-                      <TableCell>{renderCell( item, colkey as keyof ( typeof displayData )[number] )}</TableCell>
-                    )}
-                  </TableRow>
-                )} */}
-              {displayData.map( ( item, i, o ) => {
-                const { isVisible } = item
-                if ( item.name === 'name' )
-                  return (
-                    <TableRow key={item.name}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.getter}</TableCell>
-                    </TableRow>
-                  )
-                return (
-                  <TableRow key={item.name}>
-                    <TableCell>
-                      <div className={classname( ['custom-name'] )}>
-                        <Button
-                          size="sm"
-                          onPress={() => {
-                            editUserProperties( { ...item, isNameVisible: !item.isNameVisible } )
-                          }}
-                        >
-                          <MyIcon>{`eye${item.isNameVisible ? '' : '-blocked'}`}</MyIcon>
-                        </Button>
-                        <span style={{ color: item.color }}>{`${item.name}`}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className={classname( ['custom-cell'] )}>
-                        <Code className={classname( ['code', { isVisible }] )}>{item.getter}</Code>
-                        <div className={classname( ['btns'] )}>
-                          <Tooltip content={isVisible ? '정보 표기하지 않기' : '정보 표기하기'} placement="left">
+              <Table
+                removeWrapper
+                disabledKeys={disableKey}
+                selectionMode="single"
+                color="primary"
+                onSelectionChange={( k ) => setSelectedName( [...k][0] as string )}
+                key={forceR}
+              >
+                <TableHeader>
+                  <TableColumn key="name">이름</TableColumn>
+                  <TableColumn key="getter">설정된 접근자</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {/* {( item ) => (
+                      <TableRow key={`${item.name}`}>
+                        {( colkey ) => (
+                          <TableCell>{renderCell( item, colkey as keyof ( typeof displayData )[number] )}</TableCell>
+                        )}
+                      </TableRow>
+                    )} */}
+                  {displayData.map( ( item, i, o ) => {
+                    const { isVisible } = item
+                    if ( item.name === 'name' )
+                      return (
+                        <TableRow key={item.name}>
+                          <TableCell>{item.name}</TableCell>
+                          <TableCell>{item.getter}</TableCell>
+                        </TableRow>
+                      )
+                    return (
+                      <TableRow key={item.name}>
+                        <TableCell>
+                          <div className={classname( ['custom-name'] )}>
                             <Button
                               size="sm"
                               onPress={() => {
-                                editUserProperties( { ...item, isVisible: !item.isVisible } )
+                                editUserProperties( { ...item, isNameVisible: !item.isNameVisible } )
                               }}
                             >
-                              <MyIcon>{`eye${item.isVisible ? '' : '-blocked'}`}</MyIcon>
+                              <MyIcon>{`eye${item.isNameVisible ? '' : '-blocked'}`}</MyIcon>
                             </Button>
-                          </Tooltip>
-                          <Button
-                            size="sm"
-                            onPress={() => {
-                              setEditOpen( i )
-                            }}
-                          >
-                            <MyIcon>pencil</MyIcon>
-                            <EditModal
-                              item={item}
-                              allData={o}
-                              isOpen={isEditOpen === i}
-                              onOpenChange={() => {
-                                setEditOpen( -1 )
-                              }}
-                              onChange={editUserProperties.bind( null, item )}
-                            />
-                          </Button>
-                          <Button
-                            size="sm"
-                            onPress={() => {
-                              removeUserProperties( item )
-                              setSelectedName( ( s ) => ( item.name !== s ? s : '' ) )
-                            }}
-                          >
-                            <MyIcon>bin</MyIcon>
-                          </Button>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              } )}
-            </TableBody>
-          </Table>
+                            <span style={{ color: item.color }}>{`${item.name}`}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className={classname( ['custom-cell'] )}>
+                            <Code className={classname( ['code', { isVisible }] )}>{item.getter}</Code>
+                            <div className={classname( ['btns'] )}>
+                              <Tooltip content={isVisible ? '정보 표기하지 않기' : '정보 표기하기'} placement="left">
+                                <Button
+                                  size="sm"
+                                  onPress={() => {
+                                    editUserProperties( { ...item, isVisible: !item.isVisible } )
+                                  }}
+                                >
+                                  <MyIcon>{`eye${item.isVisible ? '' : '-blocked'}`}</MyIcon>
+                                </Button>
+                              </Tooltip>
+                              <Button
+                                size="sm"
+                                onPress={() => {
+                                  setEditOpen( i )
+                                }}
+                              >
+                                <MyIcon>pencil</MyIcon>
+                                <EditModal
+                                  item={item}
+                                  allData={o}
+                                  isOpen={isEditOpen === i}
+                                  onOpenChange={() => {
+                                    setEditOpen( -1 )
+                                  }}
+                                  onChange={editUserProperties.bind( null, item )}
+                                />
+                              </Button>
+                              <Button
+                                size="sm"
+                                onPress={() => {
+                                  removeUserProperties( item )
+                                  setSelectedName( ( s ) => ( item.name !== s ? s : '' ) )
+                                }}
+                              >
+                                <MyIcon>bin</MyIcon>
+                              </Button>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  } )}
+                </TableBody>
+              </Table>
+            </Tab>
+
+            <Tab key={'no-name'} title="추가 설정">
+              {/* TODO: 여기에 뭘 써야하냐 */}
+              <div>※ 이 기능은 아직 비어있습니다.</div>
+            </Tab>
+          </Tabs>
         </ModalBody>
       </ModalContent>
     </Modal>

@@ -11,11 +11,9 @@ interface customIpcRenderer<
   }
 }
 
-const {
-  ipcRenderer,
-}: {
+const { ipcRenderer } = window.require( 'electron/renderer' ) as {
   ipcRenderer: customIpcRenderer<IpcHandler>
-} = window.require( 'electron/renderer' )
+}
 
 export function useIpcRenderer() {
   return { ipcRenderer }
