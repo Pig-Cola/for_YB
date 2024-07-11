@@ -11,10 +11,15 @@ interface customIpcRenderer<
   }
 }
 
-const { ipcRenderer } = window.require( 'electron/renderer' ) as {
+const ipcRendererLazy = {} as {
   ipcRenderer: customIpcRenderer<IpcHandler>
 }
 
 export function useIpcRenderer() {
-  return { ipcRenderer }
+  if ( !ipcRendererLazy.ipcRenderer ) {
+    const { ipcRenderer } = window.require( 'electron/renderer' )
+    ipcRendererLazy.ipcRenderer = ipcRenderer
+  }
+
+  return { ipcRenderer: ipcRendererLazy.ipcRenderer }
 }

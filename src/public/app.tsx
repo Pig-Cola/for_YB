@@ -8,15 +8,11 @@ import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { NextUIProvider } from '@nextui-org/react'
 import { createRoot } from 'react-dom/client'
 
-import { useFocusWithLikeAlert } from '@/hooks/useFocusWithLikeAlert'
-
 import { routeObj } from './dynamicRoute'
 
 const memory = createMemoryRouter( routeObj )
 
 function App() {
-  useFocusWithLikeAlert()
-
   return (
     <NextUIProvider>
       <RouterProvider router={memory}></RouterProvider>
