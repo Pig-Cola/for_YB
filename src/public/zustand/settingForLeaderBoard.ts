@@ -50,6 +50,14 @@ const initUserProperties: LocalStore_State['userProperties'] = [
     color: '#808080',
     isNameVisible: true,
   },
+  {
+    name: 'lap count',
+    getter: 'timing.lapCount',
+    isImmutable: false,
+    isVisible: true,
+    color: '#6eed90',
+    isNameVisible: true,
+  },
 ]
 
 export const useSettingForLeaderBoard = create<LocalStore_State & LocalStore_Method>()(
@@ -113,12 +121,25 @@ export const useSettingForLeaderBoard = create<LocalStore_State & LocalStore_Met
         defaultProperties,
         userProperties,
       } ),
-      version: 1,
+      version: 2,
       migrate: ( ps, ver ) => {
         const temp = { ...( ps as any ) }
         switch ( ver ) {
           case 0: {
+            console.log( 'v0 -> v1' )
             temp.userProperties = temp.userProperties.map( ( v: any ) => ( { ...v, isNameVisible: true } ) )
+          }
+          // falls through
+          case 1: {
+            console.log( 'v1 -> v2' )
+            temp.userProperties.push( {
+              name: 'lap count',
+              getter: 'timing.lapCount',
+              isImmutable: false,
+              isVisible: true,
+              color: '#6eed90',
+              isNameVisible: true,
+            } )
           }
         }
         return temp

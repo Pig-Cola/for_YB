@@ -1,0 +1,11 @@
+.menu {
+  grid-area: menu;
+
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.3rem;
+
+  font-size: 14px;
+}

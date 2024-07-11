@@ -4,19 +4,22 @@ interface customIpcRenderer<
   T extends Record<string, ( ...args: unknown[] ) => unknown>,
   K extends Exclude<keyof T, number | symbol> = Exclude<keyof T, number | symbol>,
 > extends Electron.IpcRenderer {
-  send<J extends K>( channel: J, ...args: Parameters<T[J]> ): void
-  sendSync<J extends K>( channel: J, ...args: Parameters<T[J]> ): ReturnType<T[J]>
+  // send<J extends K>( channel: J, ...args: Parameters<T[J]> ): void
+  // sendSync<J extends K>( channel: J, ...args: Parameters<T[J]> ): ReturnType<T[J]>
   invoke: {
     <J extends K>( channel: J, ...args: Parameters<T[J]> ): Promise<Awaited<ReturnType<T[J]>>>
   }
 }
 
-const {
-  ipcRenderer,
-}: {
+const ipcRendererLazy = {} as {
   ipcRenderer: customIpcRenderer<IpcHandler>
-} = window.require( 'electron/renderer' )
+}
 
 export function useIpcRenderer() {
-  return { ipcRenderer }
+  if ( !ipcRendererLazy.ipcRenderer ) {
+    const { ipcRenderer } = window.require( 'electron/renderer' )
+    ipcRendererLazy.ipcRenderer = ipcRenderer
+  }
+
+  return { ipcRenderer: ipcRendererLazy.ipcRenderer }
 }

@@ -11,29 +11,32 @@
   gap: 15px;
 
   & > div {
-    padding: 10px;
+    padding: 0.7rem;
     border: 1px solid #fff;
     border-radius: 5px;
   }
 
-  .menu {
-    grid-area: menu;
+  // .menu {
+  //   grid-area: menu;
 
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.3rem;
+  //   display: flex;
+  //   flex-flow: row wrap;
+  //   justify-content: space-between;
+  //   align-items: center;
+  //   gap: 0.3rem;
 
-    font-size: 14px;
-  }
+  //   font-size: 14px;
+  // }
 
   .leaderBoardLines-wrapper {
     grid-area: board;
+
+    padding: 0;
   }
 
   .leaderBoardLines {
     height: 100%;
+    padding: 0.7rem;
 
     display: flex;
     flex-flow: column;
@@ -43,6 +46,8 @@
   }
   .info {
     grid-area: info;
+
+    position: relative;
 
     word-wrap: break-word;
     text-overflow: clip;
@@ -55,28 +60,14 @@
       color: darkgray;
     }
 
-    & :last-child {
-      .example {
-        display: flex;
-        flex-flow: row;
-        align-items: center;
-        justify-content: flex-start;
+    .noti {
+      position: absolute;
+      bottom: 0.7rem;
+      left: 0.7rem;
+      right: 0.7rem;
 
-        column-gap: 20px;
-        row-gap: 10px;
-
-        .index {
-          color: yellow;
-        }
-        // .name {
-        // }
-        .total-time {
-          color: aqua;
-        }
-        .player-id {
-          color: gray;
-        }
-      }
+      color: darkgray;
+      font-size: 0.9rem;
     }
   }
 }
