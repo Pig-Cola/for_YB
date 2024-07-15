@@ -1,8 +1,8 @@
+// import { MakerRpm } from '@electron-forge/maker-rpm'
+// import { MakerDeb } from '@electron-forge/maker-deb'
+// import { MakerZIP } from '@electron-forge/maker-zip'
 import { FuseV1Options, FuseVersion } from '@electron/fuses'
-import { MakerDeb } from '@electron-forge/maker-deb'
-import { MakerRpm } from '@electron-forge/maker-rpm'
 import { MakerSquirrel } from '@electron-forge/maker-squirrel'
-import { MakerZIP } from '@electron-forge/maker-zip'
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives'
 import { FusesPlugin } from '@electron-forge/plugin-fuses'
 import { VitePlugin } from '@electron-forge/plugin-vite'
@@ -13,13 +13,12 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: './src/icon.ico',
+    appCopyright: `Copyright (c) 2024 Dae-seong Hwang <co.la@kakao.com>`,
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel( { authors: 'pig-cola', name: 'pig-cola' }, ['win32'] ),
-    new MakerZIP( {}, ['darwin'] ),
-    new MakerRpm( {} ),
-    new MakerDeb( {} ),
+    new MakerSquirrel( {}, ['win32'] ),
+    // new MakerZIP( {}, ['darwin'] ), new MakerRpm( {} ), new MakerDeb( {} ),
   ],
   plugins: [
     new AutoUnpackNativesPlugin( {} ),
