@@ -1,7 +1,7 @@
 import './ipcMethods'
 import { app, BrowserWindow } from 'electron'
 
-import { updateElectronApp, UpdateSourceType } from 'update-electron-app'
+import { updateElectronApp } from 'update-electron-app'
 
 import { createWindow } from './createWindow'
 import { isDev } from './isDev'
