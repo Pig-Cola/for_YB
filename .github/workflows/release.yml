@@ -5,12 +5,11 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - "v*.*.*"
 
 jobs:
-  build:
+  buildAndRelease:
 
     runs-on: windows-latest
 
@@ -21,16 +20,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        name: Use Node.js ${{ matrix.node-version }}
       - uses: actions/setup-node@v4
+        name: Use Node.js ${{ matrix.node-version }}
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       - run: npm run make
-      - uses: marvinpinto/action-automatic-releases@latest
+      - uses: softprops/action-gh-release@v2
+        name: release
         with:
-          automatic_release_tag: vtemp
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          generate_release_notes: true
           files: |
             /out/make/*
           draft: true
