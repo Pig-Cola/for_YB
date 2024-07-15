@@ -18,7 +18,7 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerSquirrel( {}, ['win32'] ),
-    // , new MakerZIP( {}, ['darwin'] ), new MakerRpm( {} ), new MakerDeb( {} ),
+    // new MakerZIP( {}, ['darwin'] ), new MakerRpm( {} ), new MakerDeb( {} ),
   ],
   plugins: [
     new AutoUnpackNativesPlugin( {} ),
