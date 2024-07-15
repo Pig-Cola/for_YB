@@ -20,10 +20,6 @@ if ( require( 'electron-squirrel-startup' ) ) {
 if ( !isDev ) {
   updateElectronApp( {
     updateInterval: '5 minutes',
-    updateSource: {
-      type: UpdateSourceType.ElectronPublicUpdateService,
-      repo: `https://github.com/Pig-Cola/for_YB.git`,
-    },
   } )
 }
 
