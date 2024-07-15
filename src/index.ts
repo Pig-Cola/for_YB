@@ -18,9 +18,7 @@ if ( require( 'electron-squirrel-startup' ) ) {
 }
 
 if ( !isDev ) {
-  updateElectronApp( {
-    updateInterval: '5 minutes',
-  } )
+  updateElectronApp()
 }
 
 app.commandLine.appendSwitch( '--no-sandbox' )
