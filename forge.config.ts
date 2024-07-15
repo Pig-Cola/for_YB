@@ -13,6 +13,7 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: './src/icon.ico',
+    appCopyright: `Copyright (c) 2024 Dae-seong Hwang <co.la@kakao.com>`,
   },
   rebuildConfig: {},
   makers: [
