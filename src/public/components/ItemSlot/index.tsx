@@ -23,12 +23,14 @@ type LeaderBoardItemSlotProps = {
   // reorder: Dispatch<SetStateAction<itemValue[]>>
   // max: number
   setPenalty: Dispatch<SetStateAction<Record<string, `${number}`>>>
+  doRetire: ( playerId: string ) => void
 }
 
 export function LeaderBoardItemSlot( {
   value: info,
   index: i /* reorder, max */,
   setPenalty,
+  doRetire,
 }: LeaderBoardItemSlotProps ) {
   const controls = useDragControls()
   const { userProperties } = useSettingForLeaderBoard()
@@ -75,6 +77,19 @@ export function LeaderBoardItemSlot( {
       </div>
 
       <div className={classname( ['control'] )} ref={controlRef}>
+        <Tooltip color="danger" content="리스트에서 사라짐">
+          <Button
+            size="sm"
+            color="danger"
+            onPress={() => {
+              doRetire( info.currentDriver.playerId )
+            }}
+          >
+            <span>리타이어</span>
+            <MyIcon>flag</MyIcon>
+          </Button>
+        </Tooltip>
+
         <Button
           size="sm"
           onPress={() => {
