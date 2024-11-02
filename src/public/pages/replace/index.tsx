@@ -14,6 +14,7 @@ import { useFileStore } from '@/zustand/fileStore'
 
 
 import { getCarModelString } from '@/utill/getCarModel'
+import { LAP_TIME_INFINITY } from '@/utill/global-variable'
 
 import styles from './index.module.scss'
 
@@ -61,8 +62,8 @@ export default function Replace() {
     temp.sessionResult.leaderBoardLines.forEach( ( v ) => {
       v.car.carModelString = getCarModelString( v.car.carModel )
 
-      if ( v.timing.bestLap !== 2147483647 ) return
-      if ( v.timing.lastLap === 2147483647 ) return
+      if ( v.timing.bestLap !== LAP_TIME_INFINITY ) return
+      if ( v.timing.lastLap === LAP_TIME_INFINITY ) return
 
       v.timing.bestLap = v.timing.lastLap
       v.timing.bestSplits = v.timing.lastSplits
@@ -75,7 +76,10 @@ export default function Replace() {
   useEffect( () => {
     if ( !obj ) return
 
-    const [invalid, valid] = partition( obj.sessionResult.leaderBoardLines, ( v ) => v.timing.lastLap === 2147483647 )
+    const [invalid, valid] = partition(
+      obj.sessionResult.leaderBoardLines,
+      ( v ) => v.timing.lastLap === LAP_TIME_INFINITY,
+    )
 
     setLeaderBoard( valid )
     setInvalidLeaderBoard( invalid )
