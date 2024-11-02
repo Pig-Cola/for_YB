@@ -6,10 +6,12 @@ import enc from 'encoding-japanese'
 import _get from 'lodash/get'
 
 import { MyIcon } from '@/components/my-icon'
+
 import { useFileStore } from '@/zustand/fileStore'
 import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 import type { useDisclosure } from '@nextui-org/use-disclosure'

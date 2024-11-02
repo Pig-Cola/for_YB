@@ -13,6 +13,7 @@ import { LeaderBoardItem, useSettingForLeaderBoard } from '@/zustand/settingForL
 import { MyIcon } from '../my-icon'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 // import { MyIcon } from '../my-icon'

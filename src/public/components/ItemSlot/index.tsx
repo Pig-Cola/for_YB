@@ -11,6 +11,7 @@ import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
 import { MyIcon } from '../my-icon'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 const { classname } = classOption( styles )

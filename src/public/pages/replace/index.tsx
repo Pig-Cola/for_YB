@@ -5,13 +5,18 @@ import { Reorder } from 'framer-motion'
 import partition from 'lodash/partition'
 
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
+
 import { LeaderBoardItemSlot } from '@/components/ItemSlot'
 import { LeaderBoardSetting } from '@/components/leaderBoardSetting'
 import Menu from '@/components/menu'
+
 import { useFileStore } from '@/zustand/fileStore'
+
+
 import { getCarModelString } from '@/utill/getCarModel'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 const { classname } = classOption( styles )
