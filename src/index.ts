@@ -1,6 +1,8 @@
 import './ipcMethods'
-import { app, BrowserWindow } from 'electron'
 
+import { app, BrowserWindow, autoUpdater, dialog } from 'electron'
+
+import isElectronSquirrelStartup from 'electron-squirrel-startup'
 import { updateElectronApp } from 'update-electron-app'
 
 import { createWindow } from './createWindow'
@@ -13,12 +15,8 @@ import { isDev } from './isDev'
 // declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if ( require( 'electron-squirrel-startup' ) ) {
+if ( isElectronSquirrelStartup ) {
   app.quit()
-}
-
-if ( !isDev ) {
-  updateElectronApp()
 }
 
 app.commandLine.appendSwitch( '--no-sandbox' )
@@ -26,7 +24,30 @@ app.commandLine.appendSwitch( '--no-sandbox' )
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on( 'ready', createWindow )
+app.on( 'ready', () => {
+  const win = createWindow()
+
+  if ( !isDev ) {
+    updateElectronApp( { notifyUser: false } )
+
+    autoUpdater.on( 'update-downloaded', ( event, releaseNotes, releaseName, releaseDate, updateURL ) => {
+      console.log( 'update-downloaded', [event, releaseNotes, releaseName, releaseDate, updateURL] )
+
+      const dialogOpts = {
+        type: 'info',
+        buttons: ['지금 재시작', '나중에'],
+        title: '업데이트 다운로드 성공',
+        message: process.platform === 'win32' ? releaseNotes : releaseName,
+        detail: '새 버전을 발견했습니다. 재시작시 업데이트가 적용됩니다.',
+        cancelId: 1,
+        noLink: true,
+      } as Electron.MessageBoxOptions
+      dialog.showMessageBox( win, dialogOpts ).then( ( { response } ) => {
+        if ( response === 0 ) autoUpdater.quitAndInstall()
+      } )
+    } )
+  }
+} )
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
