@@ -25,7 +25,7 @@ type MenuProps = {
   setLeaderBoard: React.Dispatch<React.SetStateAction<jsonFileTypeEx['sessionResult']['leaderBoardLines'] | undefined>>
   setObj: React.Dispatch<React.SetStateAction<jsonFileTypeEx | undefined>>
   doFileReload: React.Dispatch<React.SetStateAction<number>>
-  penalty: Record<string, `${number}`>
+  penalty: Record<string, number>
 }
 
 const Menu = ( {
@@ -55,10 +55,18 @@ const Menu = ( {
           setObj( ( s ) => {
             const newS = {
               ...s,
-              sessionResult: { ...s.sessionResult, leaderBoardLines: leaderBoard.concat( invalidLeaderBoard ) },
+              sessionResult: {
+                ...s.sessionResult,
+                leaderBoardLines: leaderBoard
+                  .map( ( v ) => ( {
+                    ...v,
+                    timing: { ...v.timing, totalTime: v.timing.totalTime + ( penalty[v.currentDriver.playerId] || 0 ) },
+                  } ) ) // penalty를 totalTime에 적용
+                  .concat( invalidLeaderBoard ),
+              },
             }
             try {
-              return newS
+              return { ...s }
             } finally {
               const link = document.createElement( 'a' )
               link.href = URL.createObjectURL(
@@ -127,7 +135,12 @@ const Menu = ( {
             thead.appendChild( tr )
 
             const tbody = document.createElement( 'tbody' )
-            leaderBoard?.forEach( ( item ) => {
+            leaderBoard
+              ?.map( ( v ) => ( {
+                ...v,
+                timing: { ...v.timing, totalTime: v.timing.totalTime + ( penalty[v.currentDriver.playerId] || 0 ) },
+              } ) ) // penalty를 totalTime에 적용
+              .forEach( ( item ) => {
               const tr = document.createElement( 'tr' )
               tr.appendChild(
                 ( () => {

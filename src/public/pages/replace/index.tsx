@@ -35,7 +35,7 @@ export default function Replace() {
   const [leaderBoard, setLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
   const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
 
-  const [penalty, setPenalty] = useState( {} as Record<string, `${number}`> )
+  const [penalty, setPenalty] = useState( {} as Record<string, number> )
   useEffect( () => {
     void fileReload
 
@@ -90,6 +90,12 @@ export default function Replace() {
     setLeaderBoard( ( s ) => {
       const [valid, invalid] = partition( s, ( v ) => v.currentDriver.playerId !== playerId )
       setInvalidLeaderBoard( ( ss ) => [...invalid, ...ss] )
+      setPenalty( ( s ) => {
+        const newS = { ...s }
+        delete newS[playerId]
+
+        return newS
+      } )
       return valid
     } )
   }
@@ -126,6 +132,7 @@ export default function Replace() {
               index={i}
               key={`${v.car.carId}-${fileReload}`}
               setPenalty={setPenalty}
+              currentpenalty={penalty[v.currentDriver.playerId] || 0}
               doRetire={doRetire}
             />
           ) )}
