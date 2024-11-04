@@ -4,6 +4,7 @@ import { Button } from '@nextui-org/button'
 import { Code } from '@nextui-org/code'
 import { Input } from '@nextui-org/input'
 import { Modal, ModalHeader, ModalBody, ModalContent } from '@nextui-org/modal'
+import { Switch } from '@nextui-org/react'
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@nextui-org/table'
 import { Tabs, Tab } from '@nextui-org/tabs'
 import { Tooltip } from '@nextui-org/tooltip'
@@ -13,6 +14,7 @@ import { LeaderBoardItem, useSettingForLeaderBoard } from '@/zustand/settingForL
 import { MyIcon } from '../my-icon'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 // import { MyIcon } from '../my-icon'
@@ -29,6 +31,7 @@ export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderB
   const {
     defaultProperties,
     userProperties,
+    moreSetting: { includePenaltyWithCopy, penaltyTextZero },
 
     reset: _reset,
 
@@ -36,6 +39,8 @@ export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderB
     editUserProperties,
     removeUserProperties,
     move2UserProperties,
+
+    toggleMoreSetting,
   } = useSettingForLeaderBoard()
   const [inputName, setInputName] = useState( '' )
   const [inputAccessor, setInputAccessor] = useState( '' )
@@ -126,6 +131,7 @@ export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderB
                   label="이름"
                   isInvalid={inputErr.name}
                 />
+                {/* TODO: 접근자 자동완성 - nextui/autocomplete 이용하기 */}
                 <Input
                   classNames={{ base: classname( ['accessor'] ) }}
                   value={inputAccessor}
@@ -175,13 +181,7 @@ export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderB
                     )} */}
                   {displayData.map( ( item, i, o ) => {
                     const { isVisible } = item
-                    if ( item.name === 'name' )
-                      return (
-                        <TableRow key={item.name}>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.getter}</TableCell>
-                        </TableRow>
-                      )
+                    if ( item.name === 'name' ) return
                     return (
                       <TableRow key={item.name}>
                         <TableCell>
@@ -248,8 +248,25 @@ export function LeaderBoardSetting( { isOpen, onOpenChange, targetRef }: ReaderB
             </Tab>
 
             <Tab key={'no-name'} title="추가 설정">
-              {/* TODO: 여기에 뭘 써야하냐 */}
-              <div>※ 이 기능은 아직 비어있습니다.</div>
+              <div className={classname( ['more-setting'] )}>
+                <div className={classname( ['setting-item'] )}>
+                  <p>표기 정보 복사 - 페널티 정보 포함</p>
+                  <Switch
+                    isSelected={includePenaltyWithCopy}
+                    onValueChange={() => toggleMoreSetting( 'includePenaltyWithCopy' )}
+                  />
+                  <p className={classname( ['description'] )}>표기 정보를 복사할 때, 페널티 정보를 포함할지 여부</p>
+                </div>
+                <div className={classname( ['setting-item', { disable: !includePenaltyWithCopy }] )}>
+                  <p>페널티 값 항상 표기</p>
+                  <Switch
+                    isSelected={penaltyTextZero}
+                    onValueChange={() => toggleMoreSetting( 'penaltyTextZero' )}
+                    isDisabled={!includePenaltyWithCopy}
+                  />
+                  <p className={classname( ['description'] )}>페널티 값이 0일 때에도 페널티 표기</p>
+                </div>
+              </div>
             </Tab>
           </Tabs>
         </ModalBody>

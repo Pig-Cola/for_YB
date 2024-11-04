@@ -1,0 +1,1 @@
+export const LAP_TIME_INFINITY = 2147483647

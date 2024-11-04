@@ -64,7 +64,7 @@
           "order": "asc",
           "caseInsensitive": true
         },
-        "distinctGroup": false
+        "distinctGroup": true
       }
     ]
   },

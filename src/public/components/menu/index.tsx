@@ -6,10 +6,12 @@ import enc from 'encoding-japanese'
 import _get from 'lodash/get'
 
 import { MyIcon } from '@/components/my-icon'
+
 import { useFileStore } from '@/zustand/fileStore'
 import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 import type { useDisclosure } from '@nextui-org/use-disclosure'
@@ -23,7 +25,7 @@ type MenuProps = {
   setLeaderBoard: React.Dispatch<React.SetStateAction<jsonFileTypeEx['sessionResult']['leaderBoardLines'] | undefined>>
   setObj: React.Dispatch<React.SetStateAction<jsonFileTypeEx | undefined>>
   doFileReload: React.Dispatch<React.SetStateAction<number>>
-  penalty: Record<string, `${number}`>
+  penalty: Record<string, number>
 }
 
 const Menu = ( {
@@ -37,7 +39,11 @@ const Menu = ( {
 }: MenuProps ) => {
   const navigate = useNavigate()
   const { setFile } = useFileStore( ( s ) => s )
-  const { userProperties } = useSettingForLeaderBoard()
+  const {
+    userProperties,
+
+    moreSetting,
+  } = useSettingForLeaderBoard()
 
   return (
     <div className={classname( ['menu'] )}>
@@ -53,10 +59,18 @@ const Menu = ( {
           setObj( ( s ) => {
             const newS = {
               ...s,
-              sessionResult: { ...s.sessionResult, leaderBoardLines: leaderBoard.concat( invalidLeaderBoard ) },
+              sessionResult: {
+                ...s.sessionResult,
+                leaderBoardLines: leaderBoard
+                  .map( ( v ) => ( {
+                    ...v,
+                    timing: { ...v.timing, totalTime: v.timing.totalTime + ( penalty[v.currentDriver.playerId] || 0 ) },
+                  } ) ) // penalty를 totalTime에 적용
+                  .concat( invalidLeaderBoard ),
+              },
             }
             try {
-              return newS
+              return { ...s }
             } finally {
               const link = document.createElement( 'a' )
               link.href = URL.createObjectURL(
@@ -122,25 +136,42 @@ const Menu = ( {
               temp.innerText = v
               tr.appendChild( temp )
             } )
+            if ( moreSetting.includePenaltyWithCopy ) {
+              const temp = document.createElement( 'th' )
+              temp.innerText = '페널티(ms)'
+              tr.appendChild( temp )
+            }
             thead.appendChild( tr )
 
             const tbody = document.createElement( 'tbody' )
-            leaderBoard?.forEach( ( item ) => {
-              const tr = document.createElement( 'tr' )
-              tr.appendChild(
-                ( () => {
-                  const temp = document.createElement( 'td' )
-                  temp.innerText = `${item.currentDriver.firstName} ${item.currentDriver.lastName}`
-                  return temp
-                } )(),
-              )
-              visible.forEach( ( { getter } ) => {
-                const td = document.createElement( 'td' )
-                td.innerText = _get( item, getter, '잘못된 접근자 입니다' )
-                tr.appendChild( td )
+            leaderBoard
+              ?.map( ( v ) => ( {
+                ...v,
+                timing: { ...v.timing, totalTime: v.timing.totalTime + ( penalty[v.currentDriver.playerId] || 0 ) },
+              } ) ) // penalty를 totalTime에 적용
+              .forEach( ( item ) => {
+                const tr = document.createElement( 'tr' )
+                tr.appendChild(
+                  ( () => {
+                    const temp = document.createElement( 'td' )
+                    temp.innerText = `${item.currentDriver.firstName} ${item.currentDriver.lastName}`
+                    return temp
+                  } )(),
+                )
+                visible.forEach( ( { getter } ) => {
+                  const td = document.createElement( 'td' )
+                  td.innerText = _get( item, getter, '잘못된 접근자 입니다' )
+                  tr.appendChild( td )
+                } )
+
+                if ( moreSetting.includePenaltyWithCopy ) {
+                  const td = document.createElement( 'td' )
+                  td.innerText = `${penalty[item.currentDriver.playerId] || ( moreSetting.penaltyTextZero ? 0 : '' )}`
+                  tr.append( td )
+                }
+                tbody.appendChild( tr )
               } )
-              tbody.appendChild( tr )
-            } )
+
             table.appendChild( thead )
             table.appendChild( tbody )
 

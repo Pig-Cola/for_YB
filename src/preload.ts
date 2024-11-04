@@ -22,8 +22,8 @@ const PreLoad = () => {
         }
       },
     ] ),
-  ) as { alert: typeof oldFn.alert; confirm: typeof oldFn.confirm } )
+  ) as typeof oldFn )
 }
 
-console.log( 'change!!!' )
+console.log( 'forceFocus change!!!' )
 PreLoad()

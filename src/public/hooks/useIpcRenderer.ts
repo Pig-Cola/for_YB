@@ -1,4 +1,4 @@
-import { IpcHandler } from 'src/ipcMethods'
+import type { IpcHandler } from 'src/ipcMethods'
 
 interface customIpcRenderer<
   T extends Record<string, ( ...args: unknown[] ) => unknown>,

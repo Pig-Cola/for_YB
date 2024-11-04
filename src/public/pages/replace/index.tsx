@@ -5,13 +5,18 @@ import { Reorder } from 'framer-motion'
 import partition from 'lodash/partition'
 
 import { useIpcRenderer } from '@/hooks/useIpcRenderer'
+
 import { LeaderBoardItemSlot } from '@/components/ItemSlot'
 import { LeaderBoardSetting } from '@/components/leaderBoardSetting'
 import Menu from '@/components/menu'
+
 import { useFileStore } from '@/zustand/fileStore'
+
 import { getCarModelString } from '@/utill/getCarModel'
+import { LAP_TIME_INFINITY } from '@/utill/global-variable'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 const { classname } = classOption( styles )
@@ -30,7 +35,7 @@ export default function Replace() {
   const [leaderBoard, setLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
   const [invalidLeaderBoard, setInvalidLeaderBoard] = useState<jsonFileTypeEx['sessionResult']['leaderBoardLines']>()
 
-  const [penalty, setPenalty] = useState( {} as Record<string, `${number}`> )
+  const [penalty, setPenalty] = useState( {} as Record<string, number> )
   useEffect( () => {
     void fileReload
 
@@ -56,8 +61,8 @@ export default function Replace() {
     temp.sessionResult.leaderBoardLines.forEach( ( v ) => {
       v.car.carModelString = getCarModelString( v.car.carModel )
 
-      if ( v.timing.bestLap !== 2147483647 ) return
-      if ( v.timing.lastLap === 2147483647 ) return
+      if ( v.timing.bestLap !== LAP_TIME_INFINITY ) return
+      if ( v.timing.lastLap === LAP_TIME_INFINITY ) return
 
       v.timing.bestLap = v.timing.lastLap
       v.timing.bestSplits = v.timing.lastSplits
@@ -70,169 +75,35 @@ export default function Replace() {
   useEffect( () => {
     if ( !obj ) return
 
-    const [invalid, valid] = partition( obj.sessionResult.leaderBoardLines, ( v ) => v.timing.lastLap === 2147483647 )
+    const [invalid, valid] = partition(
+      obj.sessionResult.leaderBoardLines,
+      ( v ) => v.timing.lastLap === LAP_TIME_INFINITY,
+    )
 
     setLeaderBoard( valid )
     setInvalidLeaderBoard( invalid )
   }, [obj] )
 
+  const doRetire = (
+    playerId: jsonFileTypeEx['sessionResult']['leaderBoardLines'][number]['currentDriver']['playerId'],
+  ) => {
+    setLeaderBoard( ( s ) => {
+      const [valid, invalid] = partition( s, ( v ) => v.currentDriver.playerId !== playerId )
+      setInvalidLeaderBoard( ( ss ) => [...invalid, ...ss] )
+      setPenalty( ( s ) => {
+        const newS = { ...s }
+        delete newS[playerId]
+
+        return newS
+      } )
+      return valid
+    } )
+  }
+
   // render
   return (
     <main className={classname( ['main'] )} ref={mainRef}>
       {/* menu-start */}
-      {/* <div className={classname( ['menu'] )}>
-        <Tooltip content="설정">
-          <Button size="sm" onPress={settingOptions.onOpen}>
-            <MyIcon>cog</MyIcon>
-          </Button>
-        </Tooltip>
-
-        <Button
-          // color="primary"
-          size="sm"
-          onPress={() => {
-            setObj( ( s ) => {
-              const newS = {
-                ...s,
-                sessionResult: { ...s.sessionResult, leaderBoardLines: leaderBoard.concat( invalidLeaderBoard ) },
-              }
-              try {
-                return newS
-              } finally {
-                const link = document.createElement( 'a' )
-                link.href = URL.createObjectURL(
-                  new Blob(
-                    [
-                      enc.codeToString(
-                        enc.convert(
-                          new Uint16Array(
-                            enc.stringToCode(
-                              JSON.stringify( newS, ( key, value ) => ( key !== 'carModelString' ? value : undefined ), 2 ),
-                            ),
-                          ),
-                          'UTF16LE',
-                        ),
-                      ),
-                    ],
-                    {
-                      type: 'application/json',
-                    },
-                  ),
-                )
-                link.download = 'file'
-                alert( '원본 파일에 덮어 쓰는 경우 초기화가 불가능합니다.' )
-                link.click()
-              }
-            } )
-          }}
-        >
-          다른이름으로 저장
-        </Button>
-
-        <Tooltip content="순서 초기화" color="danger" placement="bottom">
-          <Button
-            color="danger"
-            size="sm"
-            onPress={() => {
-              doFileReload( ( s ) => ++s )
-            }}
-          >
-            초기화
-          </Button>
-        </Tooltip>
-
-        <Tooltip color="success" content="Excel을 위한 데이터 복사" placement="bottom">
-          <Button
-            color="success"
-            size="sm"
-            onPress={async () => {
-              const visible = userProperties.filter( ( v ) => v.isVisible )
-              const table = document.createElement( 'table' )
-              const thead = document.createElement( 'thead' )
-              const tr = document.createElement( 'tr' )
-
-              tr.appendChild(
-                ( () => {
-                  const temp = document.createElement( 'th' )
-                  temp.innerText = 'name'
-                  return temp
-                } )(),
-              )
-              visible.forEach( ( { name: v } ) => {
-                const temp = document.createElement( 'th' )
-                temp.innerText = v
-                tr.appendChild( temp )
-              } )
-              thead.appendChild( tr )
-
-              const tbody = document.createElement( 'tbody' )
-              leaderBoard?.forEach( ( item ) => {
-                const tr = document.createElement( 'tr' )
-                tr.appendChild(
-                  ( () => {
-                    const temp = document.createElement( 'td' )
-                    temp.innerText = `${item.currentDriver.firstName} ${item.currentDriver.lastName}`
-                    return temp
-                  } )(),
-                )
-                visible.forEach( ( { getter } ) => {
-                  const td = document.createElement( 'td' )
-                  td.innerText = _get( item, getter, '잘못된 접근자 입니다' )
-                  tr.appendChild( td )
-                } )
-                tbody.appendChild( tr )
-              } )
-              table.appendChild( thead )
-              table.appendChild( tbody )
-
-              const { clipboard } = window.require( 'electron' )
-              clipboard.write( { text: table.textContent, html: table.outerHTML }, 'clipboard' )
-
-              alert( '복사 완료!' )
-            }}
-          >
-            표기 정보 복사
-          </Button>
-        </Tooltip>
-
-        <Tooltip color="primary" placement="bottom" content="일부 기능만 작동">
-          <Button
-            color="primary"
-            size="sm"
-            onPress={() => {
-              if ( !confirm( '기존 정렬을 무시하고 재정렬 됩니다.' ) ) return
-
-              setLeaderBoard( ( s ) => {
-                const temp = s
-                  .toSorted(
-                    ( a, b ) =>
-                      a.timing.totalTime +
-                      ( +penalty[a.currentDriver.playerId] || 0 ) -
-                      ( b.timing.totalTime + ( +penalty[b.currentDriver.playerId] || 0 ) ),
-                  )
-                  .toSorted( ( a, b ) => b.timing.lapCount - a.timing.lapCount )
-
-                console.log( s )
-                console.log( temp )
-                return temp
-              } )
-            }}
-          >
-            사용자 정렬
-          </Button>
-        </Tooltip>
-
-        <Button
-          color="secondary"
-          size="sm"
-          onPress={() => {
-            setFile( null )
-            navi( '/' )
-          }}
-        >
-          홈으로
-        </Button>
-      </div> */}
       <Menu
         {...{
           doFileReload,
@@ -260,19 +131,15 @@ export default function Replace() {
               value={v}
               index={i}
               key={`${v.car.carId}-${fileReload}`}
-              // max={leaderBoard.length}
-              // reorder={setLeaderBoard}
               setPenalty={setPenalty}
+              currentpenalty={penalty[v.currentDriver.playerId] || 0}
+              doRetire={doRetire}
             />
           ) )}
         </Reorder.Group>
       </div>
 
       <div className={classname( ['info'] )}>
-        <p>
-          <span className={classname( ['title'] )}>파일 이름 : </span>
-          {file?.name || 'file name'}
-        </p>
         <p>
           <span className={classname( ['title'] )}>파일 위치 : </span>
           {file?.path || 'file name'}

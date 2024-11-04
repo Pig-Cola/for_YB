@@ -28,6 +28,6 @@ export const useFocusWithLikeAlert = () => {
           }
         },
       ] ),
-    ) as { alert: typeof oldFn.alert; confirm: typeof oldFn.confirm } )
+    ) as typeof oldFn )
   }, [ipcRenderer, isFirst] )
 }

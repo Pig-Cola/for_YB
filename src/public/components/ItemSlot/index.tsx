@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 
 import { Button } from '@nextui-org/button'
-import { Input } from '@nextui-org/react'
+import { Input, Tooltip } from '@nextui-org/react'
 import { Reorder, m, useDragControls } from 'framer-motion'
 import _ from 'lodash'
 
@@ -11,6 +11,7 @@ import { useSettingForLeaderBoard } from '@/zustand/settingForLeaderBoard'
 import { MyIcon } from '../my-icon'
 
 import styles from './index.module.scss'
+
 import { classOption } from '@/utill/class-helper'
 
 const { classname } = classOption( styles )
@@ -21,16 +22,21 @@ type LeaderBoardItemSlotProps = {
   index: number
   // reorder: Dispatch<SetStateAction<itemValue[]>>
   // max: number
-  setPenalty: Dispatch<SetStateAction<Record<string, `${number}`>>>
+  setPenalty: Dispatch<SetStateAction<Record<string, number>>>
+  currentpenalty: number
+  doRetire: ( playerId: string ) => void
 }
 
 export function LeaderBoardItemSlot( {
   value: info,
   index: i /* reorder, max */,
   setPenalty,
+  currentpenalty,
+  doRetire,
 }: LeaderBoardItemSlotProps ) {
   const controls = useDragControls()
   const { userProperties } = useSettingForLeaderBoard()
+  const [, startTransition] = useTransition()
 
   const [isExtension, setIsExtension] = useState( false )
   const controlRef = useRef<HTMLDivElement>( null )
@@ -66,6 +72,9 @@ export function LeaderBoardItemSlot( {
                 if ( item.getter === 'car.carModel' && typeof temp === 'number' ) {
                   return info.car.carModelString
                 }
+                if ( item.getter === 'timing.totalTime' ) {
+                  return +temp + currentpenalty // penalty를 totalTime에 적용
+                }
                 if ( typeof temp === 'object' ) return '잘못된 접근자 입니다.'
                 return temp
               } )()}
@@ -74,14 +83,29 @@ export function LeaderBoardItemSlot( {
       </div>
 
       <div className={classname( ['control'] )} ref={controlRef}>
-        <Button
-          size="sm"
-          onPress={() => {
-            setIsExtension( true )
-          }}
-        >
-          <MyIcon>pencil</MyIcon>
-        </Button>
+        <Tooltip color="danger" content="리스트에서 사라짐">
+          <Button
+            size="sm"
+            color="danger"
+            onPress={() => {
+              doRetire( info.currentDriver.playerId )
+            }}
+          >
+            <span>리타이어</span>
+            <MyIcon>flag</MyIcon>
+          </Button>
+        </Tooltip>
+
+        <Tooltip color="default" content="페널티 편집">
+          <Button
+            size="sm"
+            onPress={() => {
+              setIsExtension( true )
+            }}
+          >
+            <MyIcon>pencil</MyIcon>
+          </Button>
+        </Tooltip>
 
         <m.button
           onPointerDown={( e ) => {
@@ -108,6 +132,7 @@ export function LeaderBoardItemSlot( {
             type="number"
             variant="underlined"
             min={0}
+            defaultValue={`${currentpenalty / 1000 || ''}`}
             isClearable
             onBeforeInput={( e ) => {
               if ( ( e as typeof e & { data: string } ).data === '-' ) {
@@ -115,11 +140,13 @@ export function LeaderBoardItemSlot( {
               }
             }}
             onValueChange={( v ) => {
-              setPenalty( ( s ) => ( { ...s, [info.currentDriver.playerId]: `${+v * 1000}` as `${number}` } ) )
+              startTransition( () => setPenalty( ( s ) => ( { ...s, [info.currentDriver.playerId]: +v * 1000 } ) ) )
             }}
           />
         </div>
       </div>
+
+      <div className={classname( [{ 'is-penalty': !!currentpenalty }] )}></div>
     </Reorder.Item>
   )
 }
