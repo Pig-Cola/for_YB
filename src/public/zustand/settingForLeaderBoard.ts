@@ -15,6 +15,11 @@ export type LeaderBoardItem = {
 type LocalStore_State = {
   defaultProperties: LeaderBoardItem[]
   userProperties: LeaderBoardItem[]
+  moreSetting: {
+    includePenaltyWithCopy: boolean
+    /** 페널티 값이 0이어도 표기 할지 여부 */
+    penaltyTextZero: boolean
+  }
 }
 type LocalStore_Method = {
   reset: () => void
@@ -23,6 +28,8 @@ type LocalStore_Method = {
   removeUserProperties: ( obj: LeaderBoardItem ) => void
   move2UserProperties: ( name: LeaderBoardItem['name'], to: -1 | 1 ) => void
   editUserProperties: ( obj: LeaderBoardItem, to?: LeaderBoardItem | undefined ) => void
+
+  toggleMoreSetting: ( settingName: keyof LocalStore_State['moreSetting'] ) => void
 }
 
 const initUserProperties: LocalStore_State['userProperties'] = [
@@ -113,21 +120,35 @@ export const useSettingForLeaderBoard = create<LocalStore_State & LocalStore_Met
 
           return { userProperties: userProperties.slice( 0, idx ).concat( to || obj, userProperties.slice( idx + 1 ) ) }
         } ),
+
+      moreSetting: {
+        includePenaltyWithCopy: false,
+        penaltyTextZero: false,
+      },
+
+      toggleMoreSetting: ( settingName ) =>
+        set( ( { moreSetting } ) => ( {
+          moreSetting: { ...moreSetting, [settingName]: !moreSetting[settingName] },
+        } ) ),
     } ),
     {
       name: SETTING_FOR_LEADERBOARD_STORAGE_KEY,
       storage: createJSONStorage( () => localStorage ),
-      partialize: ( { defaultProperties, userProperties } ) => ( {
+      partialize: ( { defaultProperties, userProperties, moreSetting } ) => ( {
         defaultProperties,
         userProperties,
+        moreSetting,
       } ),
-      version: 2,
+      version: 3,
       migrate: ( ps, ver ) => {
-        const temp = { ...( ps as any ) }
+        /* eslint-disable-next-line */
+        const temp = { ...(ps as any) }
+        console.log( 'store version change' )
         switch ( ver ) {
           case 0: {
             console.log( 'v0 -> v1' )
-            temp.userProperties = temp.userProperties.map( ( v: any ) => ( { ...v, isNameVisible: true } ) )
+            /* eslint-disable-next-line */
+            temp.userProperties = temp.userProperties.map((v: any) => ({ ...v, isNameVisible: true }))
           }
           // falls through
           case 1: {
@@ -140,6 +161,10 @@ export const useSettingForLeaderBoard = create<LocalStore_State & LocalStore_Met
               color: '#6eed90',
               isNameVisible: true,
             } )
+          }
+          // falls through
+          case 2: {
+            console.log( 'v2 -> v3' )
           }
         }
         return temp

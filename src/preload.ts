@@ -25,5 +25,5 @@ const PreLoad = () => {
   ) as typeof oldFn )
 }
 
-console.log( 'change!!!' )
+console.log( 'forceFocus change!!!' )
 PreLoad()

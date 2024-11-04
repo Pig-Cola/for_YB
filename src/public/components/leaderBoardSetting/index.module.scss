@@ -68,4 +68,49 @@
     justify-content: space-between;
     align-items: center;
   }
+
+  .more-setting {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 1rem;
+
+    .setting-item {
+      display: grid;
+      grid-template-areas:
+        'setting-name buttons'
+        'description description';
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto auto;
+      align-items: center;
+      row-gap: 0.3rem;
+
+      .description {
+        grid-area: description;
+
+        color: darkgray;
+        font-size: 0.8rem;
+      }
+
+      & > :first-child {
+        grid-area: setting-name;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+      & > :nth-child(2) {
+        grid-area: buttons;
+      }
+
+      &.disable {
+        cursor: not-allowed;
+        color: gray;
+
+        & * {
+          cursor: not-allowed;
+        }
+        & > * {
+          color: gray;
+        }
+      }
+    }
+  }
 }

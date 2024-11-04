@@ -39,7 +39,11 @@ const Menu = ( {
 }: MenuProps ) => {
   const navigate = useNavigate()
   const { setFile } = useFileStore( ( s ) => s )
-  const { userProperties } = useSettingForLeaderBoard()
+  const {
+    userProperties,
+
+    moreSetting,
+  } = useSettingForLeaderBoard()
 
   return (
     <div className={classname( ['menu'] )}>
@@ -132,6 +136,11 @@ const Menu = ( {
               temp.innerText = v
               tr.appendChild( temp )
             } )
+            if ( moreSetting.includePenaltyWithCopy ) {
+              const temp = document.createElement( 'th' )
+              temp.innerText = '페널티(ms)'
+              tr.appendChild( temp )
+            }
             thead.appendChild( tr )
 
             const tbody = document.createElement( 'tbody' )
@@ -141,21 +150,28 @@ const Menu = ( {
                 timing: { ...v.timing, totalTime: v.timing.totalTime + ( penalty[v.currentDriver.playerId] || 0 ) },
               } ) ) // penalty를 totalTime에 적용
               .forEach( ( item ) => {
-              const tr = document.createElement( 'tr' )
-              tr.appendChild(
-                ( () => {
-                  const temp = document.createElement( 'td' )
-                  temp.innerText = `${item.currentDriver.firstName} ${item.currentDriver.lastName}`
-                  return temp
-                } )(),
-              )
-              visible.forEach( ( { getter } ) => {
-                const td = document.createElement( 'td' )
-                td.innerText = _get( item, getter, '잘못된 접근자 입니다' )
-                tr.appendChild( td )
+                const tr = document.createElement( 'tr' )
+                tr.appendChild(
+                  ( () => {
+                    const temp = document.createElement( 'td' )
+                    temp.innerText = `${item.currentDriver.firstName} ${item.currentDriver.lastName}`
+                    return temp
+                  } )(),
+                )
+                visible.forEach( ( { getter } ) => {
+                  const td = document.createElement( 'td' )
+                  td.innerText = _get( item, getter, '잘못된 접근자 입니다' )
+                  tr.appendChild( td )
+                } )
+
+                if ( moreSetting.includePenaltyWithCopy ) {
+                  const td = document.createElement( 'td' )
+                  td.innerText = `${penalty[item.currentDriver.playerId] || ( moreSetting.penaltyTextZero ? 0 : '' )}`
+                  tr.append( td )
+                }
+                tbody.appendChild( tr )
               } )
-              tbody.appendChild( tr )
-            } )
+
             table.appendChild( thead )
             table.appendChild( tbody )
 

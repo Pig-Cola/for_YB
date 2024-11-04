@@ -97,14 +97,14 @@ export function LeaderBoardItemSlot( {
         </Tooltip>
 
         <Tooltip color="default" content="페널티 편집">
-        <Button
-          size="sm"
-          onPress={() => {
-            setIsExtension( true )
-          }}
-        >
-          <MyIcon>pencil</MyIcon>
-        </Button>
+          <Button
+            size="sm"
+            onPress={() => {
+              setIsExtension( true )
+            }}
+          >
+            <MyIcon>pencil</MyIcon>
+          </Button>
         </Tooltip>
 
         <m.button
