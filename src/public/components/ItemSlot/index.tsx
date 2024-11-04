@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 
 import { Button } from '@nextui-org/button'
-import { Input } from '@nextui-org/react'
+import { Input, Tooltip } from '@nextui-org/react'
 import { Reorder, m, useDragControls } from 'framer-motion'
 import _ from 'lodash'
 
@@ -90,6 +90,7 @@ export function LeaderBoardItemSlot( {
           </Button>
         </Tooltip>
 
+        <Tooltip color="default" content="페널티 편집">
         <Button
           size="sm"
           onPress={() => {
@@ -98,6 +99,7 @@ export function LeaderBoardItemSlot( {
         >
           <MyIcon>pencil</MyIcon>
         </Button>
+        </Tooltip>
 
         <m.button
           onPointerDown={( e ) => {
@@ -136,6 +138,8 @@ export function LeaderBoardItemSlot( {
           />
         </div>
       </div>
+
+      <div className={classname( [{ 'is-penalty': !!currentpenalty }] )}></div>
     </Reorder.Item>
   )
 }
