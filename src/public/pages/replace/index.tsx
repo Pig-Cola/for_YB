@@ -89,6 +89,14 @@ export default function Replace() {
   ) => {
     setLeaderBoard( ( s ) => {
       const [valid, invalid] = partition( s, ( v ) => v.currentDriver.playerId !== playerId )
+
+      invalid.forEach( ( v ) => {
+        v.timing.lastLap = LAP_TIME_INFINITY
+        v.timing.lastSplits = v.timing.lastSplits.map( () => LAP_TIME_INFINITY )
+        v.timing.bestLap = LAP_TIME_INFINITY
+        v.timing.bestSplits = v.timing.bestSplits.map( () => LAP_TIME_INFINITY )
+      } )
+
       setInvalidLeaderBoard( ( ss ) => [...invalid, ...ss] )
       setPenalty( ( s ) => {
         const newS = { ...s }
